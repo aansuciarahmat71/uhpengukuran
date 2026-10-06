@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>uhpengukuran x12</title>
+<style>
+  :root { --ink:#1C2B3A; --paper:#F6F4EE; --line:#E3DFD1; --accent:#2C4A6E; --hijau:#2F9E6B; --kuning:#B8790F; --merah:#C0392B; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; background: var(--paper); color: #2E3440; margin:0; padding: 20px 16px 60px; }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 { font-family: Georgia, 'Iowan Old Style', serif; color: var(--ink); font-size: 24px; margin: 0 0 4px; }
+  .subtitle { color:#5A6270; font-size: 13px; margin-bottom: 18px; }
+  .timer-bar { display:none; justify-content:space-between; align-items:center; background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px 18px; margin-bottom:16px; }
+  .timer-label { font-size:12px; font-weight:700; color:#5A6270; text-transform:uppercase; letter-spacing:.04em; }
+  .timer-value { font-family:'JetBrains Mono', monospace; font-size:22px; font-weight:700; color:var(--ink); }
+  .timer-value.warning { color:#C0392B; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin-bottom:16px; }
+  label { display:block; font-size:12px; font-weight:700; color:#5A6270; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
+  input[type=text] { width:100%; box-sizing:border-box; padding:9px 11px; border:1px solid #DDD7C8; border-radius:5px; font-size:14px; margin-bottom:14px; }
+  .identitas-row { display:flex; gap:14px; flex-wrap:wrap; }
+  .identitas-row > div { flex:1; min-width:180px; }
+  .info-baris { display:flex; gap:18px; flex-wrap:wrap; margin: 4px 0 18px; }
+  .info-item { font-size:13px; color:#3B4552; background:#FCFBF7; border:1px solid var(--line); border-radius:6px; padding:8px 12px; }
+  .info-item b { color:var(--ink); }
+  .aturan-box { background:#FBF1DF; border:1px solid #B8790F55; color:#7a5308; border-radius:8px; padding:14px 16px; font-size:13px; line-height:1.7; margin-bottom:18px; }
+  .aturan-box ul { margin: 6px 0 0; padding-left: 18px; }
+  .resume-box { background:#EAF0F6; border:1px solid #2C4A6E55; color:#1C2B3A; border-radius:8px; padding:14px 16px; font-size:13px; line-height:1.7; margin-bottom:18px; }
+  .resume-box .resume-btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .resume-btn-lanjut { background: var(--ink); color:#F6F4EE; border:none; border-radius:5px; padding:8px 14px; font-size:13px; font-weight:700; cursor:pointer; }
+  .resume-btn-baru { background:#fff; color:#5A6270; border:1px solid #DDD7C8; border-radius:5px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+  .start-btn { width:100%; background: var(--ink); color:#F6F4EE; border:none; border-radius:6px; padding:13px; font-size:14px; font-weight:700; cursor:pointer; }
+  .start-btn:disabled { opacity:.5; cursor:default; }
+  .err-text { color: var(--merah); font-size:13px; margin: -6px 0 14px; display:none; }
+
+  .cbt-wrap { display:none; gap:18px; align-items:flex-start; }
+  .cbt-main { flex:1; min-width:0; background:#fff; border:1px solid var(--line); border-radius:8px; padding:20px; user-select:none; }
+  .progress { font-family:'JetBrains Mono', monospace; font-size:12.5px; color:var(--accent); font-weight:700; margin-bottom:10px; }
+  .section-label { display:inline-block; font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--ink); background:#EAF0F6; border:1px solid var(--accent); border-radius:20px; padding:4px 12px; margin-bottom:12px; }
+  .soal-text { white-space:pre-wrap; font-size:15.5px; line-height:1.7; margin-bottom:16px; min-height:60px; }
+  .soal-image { max-width:100%; max-height:340px; border-radius:6px; border:1px solid var(--line); display:block; margin:0 0 16px; }
+  .jawaban-input { width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid #DDD7C8; border-radius:5px; font-size:14px; font-family:inherit; resize:vertical; margin-bottom:14px; user-select:text; }
+  .opsi-list { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; user-select:text; }
+  .opsi-item { display:flex; align-items:flex-start; gap:10px; border:1px solid #DDD7C8; border-radius:6px; padding:10px 12px; cursor:pointer; font-size:14.5px; line-height:1.5; }
+  .opsi-item:hover { border-color: var(--accent); }
+  .opsi-item.dipilih { border-color: var(--accent); background:#EAF0F6; }
+  .opsi-item input[type=radio] { margin-top:3px; flex-shrink:0; }
+  .opsi-huruf { font-family:'JetBrains Mono', monospace; font-weight:700; color: var(--accent); flex-shrink:0; }
+  .skor-box { background:#EAF0F6; border:1px solid var(--accent); color: var(--ink); border-radius:8px; padding:14px 16px; margin-top:14px; font-size:14px; line-height:1.7; text-align:left; }
+  .cbt-controls { display:flex; gap:8px; flex-wrap:wrap; }
+  .btn { border-radius:6px; padding:10px 16px; font-size:13.5px; font-weight:700; cursor:pointer; border:1px solid #DDD7C8; background:#fff; color:#3B4552; }
+  .btn:disabled { opacity:.45; cursor:default; }
+  .btn-ink { background: var(--ink); color:#F6F4EE; border:none; }
+  .btn-ragu { background:#fff; border:1.5px solid var(--kuning); color:var(--kuning); }
+  .btn-ragu.active { background: var(--kuning); color:#fff; }
+  .btn-ragu.active::after { content:" ✓"; }
+
+  .cbt-nav { width:230px; flex-shrink:0; background:#fff; border:1px solid var(--line); border-radius:8px; padding:16px; position:sticky; top:16px; }
+  .nav-title { font-size:12px; font-weight:700; color:#5A6270; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px; }
+  .nav-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:7px; margin-bottom:14px; }
+  .nav-divider { grid-column: 1 / -1; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#5A6270; border-top:1px dashed #DDD7C8; padding-top:6px; margin-top:2px; }
+  .nav-btn { aspect-ratio:1; border-radius:5px; border:1px solid #DDD7C8; background:#fff; font-family:'JetBrains Mono', monospace; font-weight:700; cursor:pointer; font-size:12.5px; color:#5A6270; }
+  .nav-btn.answered { background:#EAF7F1; border-color:var(--hijau); color:#1F6E4C; }
+  .nav-btn.ragu { background:#FBF1DF; border-color:var(--kuning); color:#8a5c09; }
+  .nav-btn.current { box-shadow: 0 0 0 2px var(--accent); }
+  .legend { font-size:11.5px; color:#5A6270; line-height:1.9; margin-bottom:14px; }
+  .legend span { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:middle; }
+  .dot-answered { background:#EAF7F1; border:1px solid var(--hijau); }
+  .dot-ragu { background:#FBF1DF; border:1px solid var(--kuning); }
+  .dot-default { background:#fff; border:1px solid #DDD7C8; }
+  .summary { font-size:12.5px; color:#3B4552; margin-bottom:12px; line-height:1.8; }
+  .pelanggaran-box { font-size:11.5px; color:#8a5c09; background:#FBF1DF; border:1px solid #B8790F55; border-radius:6px; padding:8px 10px; margin-bottom:12px; display:none; }
+  .pelanggaran-box.tampil { display:block; }
+  .submit-btn { width:100%; background: var(--ink); color:#F6F4EE; border:none; border-radius:6px; padding:12px; font-size:13.5px; font-weight:700; cursor:pointer; }
+  .submit-btn:disabled { opacity:.6; cursor:default; }
+
+  #successMsg { display:none; background:#EAF7F1; border:1px solid #2F9E6B55; color:#1F6E4C; padding:16px; border-radius:8px; text-align:center; font-weight:600; }
+
+  @media (max-width: 720px) {
+    .cbt-wrap { flex-direction: column-reverse; }
+    .cbt-nav { width:100%; position:static; }
+    .nav-grid { grid-template-columns: repeat(8, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>uhpengukuran x12</h1>
+  <div class="subtitle">30 soal &middot; isi identitas Anda lalu klik "Mulai Ujian" untuk memulai</div>
+
+  <div class="timer-bar" id="timerBar">
+    <span class="timer-label">Sisa waktu</span>
+    <span class="timer-value" id="timerValue">--:--</span>
+  </div>
+
+  <div class="card" id="startScreen">
+    <div class="info-baris">
+      <div class="info-item">Jumlah soal: <b>30</b></div>
+      <div class="info-item">Durasi pengerjaan: <b>1 jam</b></div>
+    </div>
+    <div class="identitas-row">
+      <div>
+        <label for="nama">Nama</label>
+        <input type="text" id="nama" placeholder="Nama lengkap" />
+      </div>
+      <div>
+        <label for="kelas">Kelas</label>
+        <input type="text" id="kelas" placeholder="mis. XI IPA 2" />
+      </div>
+    </div>
+    <div class="err-text" id="startErr">Nama dan kelas wajib diisi sebelum memulai ujian.</div>
+    <div class="resume-box" id="resumeBox" style="display:none;"></div>
+    <div class="aturan-box">
+      <b>Tata tertib ujian:</b>
+      <ul>
+        <li>Ujian akan berjalan dalam mode layar penuh (fullscreen).</li>
+        <li>Jangan berpindah tab, membuka aplikasi lain, atau keluar dari layar penuh selama ujian berlangsung.</li>
+        <li>Setiap pelanggaran akan tercatat. Setelah 3x pelanggaran, jawaban akan otomatis dikirim dan halaman ujian akan tertutup.</li>
+      </ul>
+    </div>
+    <button class="start-btn" id="startBtn" onclick="mulaiUjian()">Mulai Ujian</button>
+  </div>
+
+  <div class="cbt-wrap" id="cbtArea">
+    <div class="cbt-main">
+      <div class="progress" id="progressText">Soal 1 dari 30</div>
+      <div class="section-label" id="sectionLabel" style="display:none;"></div>
+      <div class="soal-text" id="soalText"></div>
+      <img class="soal-image" id="soalImage" style="display:none;" alt="Gambar soal" />
+      <div id="jawabanArea"></div>
+      <div class="cbt-controls">
+        <button class="btn" id="prevBtn" onclick="goTo(currentIndex - 1)">&#9664; Sebelumnya</button>
+        <button class="btn btn-ragu" id="raguBtn" onclick="toggleRagu()">Tandai Ragu-ragu</button>
+        <button class="btn" id="nextBtn" onclick="goTo(currentIndex + 1)">Selanjutnya &#9654;</button>
+      </div>
+    </div>
+
+    <div class="cbt-nav">
+      <div class="nav-title">Navigasi Soal</div>
+      <div class="nav-grid" id="navGrid"></div>
+      <div class="legend">
+        <div><span class="dot-answered"></span>Sudah dijawab</div>
+        <div><span class="dot-ragu"></span>Ragu-ragu</div>
+        <div><span class="dot-default"></span>Belum dijawab</div>
+      </div>
+      <div class="summary" id="summaryText"></div>
+      <div class="pelanggaran-box" id="pelanggaranBox"></div>
+      <button class="submit-btn" id="submitBtn" onclick="kirimJawaban()">Selesai &amp; Kirim Jawaban</button>
+    </div>
+  </div>
+
+  <div id="successMsg">
+    <span id="successMsgText">Jawaban Anda telah terkirim. Terima kasih!</span>
+    <div id="skorBox" class="skor-box" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+  var POOL = {"pg":{"mudah":[{"id":"19f3f5d3rgbjeq","tipe":"pg","teks":"Berikut ini yang termasuk besaran pokok dalam Sistem Internasional adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"Kecepatan"},{"huruf":"B","teks":"Massa"},{"huruf":"C","teks":"Gaya"},{"huruf":"D","teks":"Luas"},{"huruf":"E","teks":"Volume"}],"kunci":"B","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f3f5d33nbq2e","tipe":"pg","teks":"Besaran berikut yang merupakan besaran turunan adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"Panjang"},{"huruf":"B","teks":"Waktu"},{"huruf":"C","teks":"Kecepatan"},{"huruf":"D","teks":"Suhu"},{"huruf":"E","teks":"Jumlah zat"}],"kunci":"C","materi":"Pengukuran","submateri":"Besaran Turunan"},{"id":"19f3f5d3cxc3ju","tipe":"pg","teks":"Satuan Sistem Internasional (SI) untuk besaran massa adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"gram"},{"huruf":"B","teks":"kilogram"},{"huruf":"C","teks":"newton"},{"huruf":"D","teks":"joule"},{"huruf":"E","teks":"watt"}],"kunci":"B","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f3f5d3615s4s","tipe":"pg","teks":"5 km jika dikonversi ke satuan meter sama dengan ...","gambar":null,"opsi":[{"huruf":"A","teks":"500 m"},{"huruf":"B","teks":"5.000 m"},{"huruf":"C","teks":"50.000 m"},{"huruf":"D","teks":"500.000 m"},{"huruf":"E","teks":"5.000.000 m"}],"kunci":"B","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f3f5d3cx4ayj","tipe":"pg","teks":"Massa 750 gram jika dikonversi ke satuan kilogram sama dengan ...","gambar":null,"opsi":[{"huruf":"A","teks":"0,075 kg"},{"huruf":"B","teks":"0,75 kg"},{"huruf":"C","teks":"7,5 kg"},{"huruf":"D","teks":"75 kg"},{"huruf":"E","teks":"0,0075 kg"}],"kunci":"B","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f3f5d3h2e85q","tipe":"pg","teks":"Banyaknya angka penting pada hasil pengukuran 0,00450 kg adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"2 angka penting"},{"huruf":"B","teks":"3 angka penting"},{"huruf":"C","teks":"4 angka penting"},{"huruf":"D","teks":"5 angka penting"},{"huruf":"E","teks":"6 angka penting"}],"kunci":"B","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"19f3f5d3zvjfs1","tipe":"pg","teks":"Bilangan 0,000025 jika ditulis dalam notasi ilmiah adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"25 × 10⁻⁶"},{"huruf":"B","teks":"2,5 × 10⁻⁵"},{"huruf":"C","teks":"2,5 × 10⁻⁶"},{"huruf":"D","teks":"25 × 10⁻⁵"},{"huruf":"E","teks":"0,25 × 10⁻⁴"}],"kunci":"B","materi":"Pengukuran","submateri":"Notasi Ilmiah"},{"id":"19f3f5d36u56yp","tipe":"pg","teks":"Notasi ilmiah dari bilangan 4.500.000 adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"4,5 × 10⁵"},{"huruf":"B","teks":"4,5 × 10⁶"},{"huruf":"C","teks":"45 × 10⁵"},{"huruf":"D","teks":"0,45 × 10⁷"},{"huruf":"E","teks":"4,5 × 10⁷"}],"kunci":"B","materi":"Pengukuran","submateri":"Notasi Ilmiah"},{"id":"19f3f5d3dsi3l1","tipe":"pg","teks":"Ketelitian (skala terkecil) jangka sorong pada umumnya adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"0,01 mm"},{"huruf":"B","teks":"0,1 mm"},{"huruf":"C","teks":"1 mm"},{"huruf":"D","teks":"0,001 mm"},{"huruf":"E","teks":"0,5 mm"}],"kunci":"B","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"19f3f5d37qx1pu","tipe":"pg","teks":"Ketelitian (skala terkecil) mikrometer sekrup pada umumnya adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"0,1 mm"},{"huruf":"B","teks":"0,05 mm"},{"huruf":"C","teks":"0,01 mm"},{"huruf":"D","teks":"1 mm"},{"huruf":"E","teks":"0,005 mm"}],"kunci":"C","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"19f40222860rl5kn3","tipe":"pg","teks":"1 kilometer sama dengan...","gambar":null,"opsi":[{"huruf":"A","teks":"10 meter"},{"huruf":"B","teks":"100 meter"},{"huruf":"C","teks":"1.000 meter"},{"huruf":"D","teks":"10.000 meter"},{"huruf":"E","teks":"0,1 meter"}],"kunci":"C","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"19f40222860wg27jr","tipe":"pg","teks":"Dimensi dari besaran massa adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"[L]"},{"huruf":"B","teks":"[M]"},{"huruf":"C","teks":"[T]"},{"huruf":"D","teks":"[M][L]"},{"huruf":"E","teks":"[L][T]"}],"kunci":"B","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f40222860dd9u4u","tipe":"pg","teks":"Satuan SI untuk besaran waktu adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"Menit"},{"huruf":"B","teks":"Jam"},{"huruf":"C","teks":"Sekon"},{"huruf":"D","teks":"Hari"},{"huruf":"E","teks":"Milidetik"}],"kunci":"C","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f402228609ebg0n","tipe":"pg","teks":"Bilangan hasil pengukuran 0,00450 memiliki jumlah angka penting sebanyak...","gambar":null,"opsi":[{"huruf":"A","teks":"2"},{"huruf":"B","teks":"3"},{"huruf":"C","teks":"4"},{"huruf":"D","teks":"5"},{"huruf":"E","teks":"6"}],"kunci":"B","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"19f402228602w28v4","tipe":"pg","teks":"Alat yang digunakan untuk mengukur massa suatu benda di laboratorium adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"Amperemeter"},{"huruf":"B","teks":"Neraca (timbangan)"},{"huruf":"C","teks":"Termometer"},{"huruf":"D","teks":"Stopwatch"},{"huruf":"E","teks":"Jangka sorong"}],"kunci":"B","materi":"Pengukuran","submateri":"Besaran Pokok"},{"id":"19f402228604y627g","tipe":"pg","teks":"Satuan gaya dalam SI adalah newton (N), yang setara dengan...","gambar":null,"opsi":[{"huruf":"A","teks":"kg/s"},{"huruf":"B","teks":"kg.m/s"},{"huruf":"C","teks":"kg.m/s^2"},{"huruf":"D","teks":"kg/m^2"},{"huruf":"E","teks":"kg.m^2/s"}],"kunci":"C","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f40222860onclnm","tipe":"pg","teks":"Ketelitian (nilai skala terkecil) sebuah mistar/penggaris pada umumnya adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"0,01 mm"},{"huruf":"B","teks":"0,05 mm"},{"huruf":"C","teks":"0,1 mm"},{"huruf":"D","teks":"0,5 mm"},{"huruf":"E","teks":"1 mm"}],"kunci":"E","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188u782qkm","tipe":"pg","teks":"Manakah yang termasuk besaran pokok?","gambar":null,"opsi":[{"huruf":"A","teks":"Waktu"},{"huruf":"B","teks":"Gaya"},{"huruf":"C","teks":"Kecepatan"},{"huruf":"D","teks":"Luas"}],"kunci":"A","materi":"Pengukuran","submateri":"Besaran Pokok"},{"id":"mubc188vhbkkjh","tipe":"pg","teks":"5 km sama dengan … m.","gambar":null,"opsi":[{"huruf":"A","teks":"500 m"},{"huruf":"B","teks":"50.000 m"},{"huruf":"C","teks":"5.000 m"},{"huruf":"D","teks":"50 m"}],"kunci":"C","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vgpywis","tipe":"pg","teks":"Jumlah angka penting pada bilangan 205 adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"4"},{"huruf":"B","teks":"1"},{"huruf":"C","teks":"3"},{"huruf":"D","teks":"2"}],"kunci":"C","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"mubc188v7eygn5","tipe":"pg","teks":"Jumlah angka penting pada bilangan 0,0056 adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"3"},{"huruf":"B","teks":"2"},{"huruf":"C","teks":"1"},{"huruf":"D","teks":"4"}],"kunci":"B","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"mubc188vo9050j","tipe":"pg","teks":"Pada bagian jangka sorong, rahang luar (atas) berfungsi untuk","gambar":null,"opsi":[{"huruf":"A","teks":"Mengukur diameter dalam suatu lubang"},{"huruf":"B","teks":"Membantu membaca angka desimal hasil pengukuran"},{"huruf":"C","teks":"Mengukur kedalaman suatu lubang"},{"huruf":"D","teks":"Mengukur diameter/panjang luar benda"},{"huruf":"E","teks":"mengukur keliling benda"}],"kunci":"D","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188vsq41v4","tipe":"pg","teks":"Jodohkan bagian jangka sorong berikut dengan fungsinya. — Rahang dalam (bawah) berpasangan dengan…","gambar":null,"opsi":[{"huruf":"A","teks":"Membantu membaca angka desimal hasil pengukuran"},{"huruf":"B","teks":"Mengukur kedalaman suatu lubang"},{"huruf":"C","teks":"Mengukur diameter/panjang luar benda"},{"huruf":"D","teks":"Mengukur diameter dalam suatu lubang"}],"kunci":"D","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188vm3cgka","tipe":"pg","teks":"Pada bagian jangka sorong, tangkai ukur kedalaman berfungsi untuk…","gambar":null,"opsi":[{"huruf":"A","teks":"Mengukur kedalaman suatu lubang"},{"huruf":"B","teks":"Mengukur diameter/panjang luar benda"},{"huruf":"C","teks":"Membantu membaca angka desimal hasil pengukuran"},{"huruf":"D","teks":"Mengukur diameter dalam suatu lubang"},{"huruf":"E","teks":"luas benda"}],"kunci":"A","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188v6qwfu5","tipe":"pg","teks":"Pada bagian jangka sorong, Skala nonius berfungsi untuk…","gambar":null,"opsi":[{"huruf":"A","teks":"Membantu membaca angka desimal hasil pengukuran"},{"huruf":"B","teks":"Mengukur diameter/panjang luar benda"},{"huruf":"C","teks":"Mengukur kedalaman suatu lubang"},{"huruf":"D","teks":"Mengukur diameter dalam suatu lubang"},{"huruf":"E","teks":"membaca skala utama"}],"kunci":"A","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188vj5g94b","tipe":"pg","teks":"Ketelitian alat ukur penggaris atau mistar adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"Bervariasi"},{"huruf":"B","teks":"0,01 mm"},{"huruf":"C","teks":"0,1 mm"},{"huruf":"D","teks":"1 mm"},{"huruf":"E","teks":"1 cm"}],"kunci":"D","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188v8vwmhw","tipe":"pg","teks":"Ketelitian  Jangka sorong adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"Bervariasi"},{"huruf":"B","teks":"0,1 mm"},{"huruf":"C","teks":"1 mm"},{"huruf":"D","teks":"0,01 mm"},{"huruf":"E","teks":"0,01 cm"}],"kunci":"B","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188vkhwuqc","tipe":"pg","teks":"Ketelitian alat ukur Mikrometer sekrup adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"1 mm"},{"huruf":"B","teks":"0,01 mm"},{"huruf":"C","teks":"Bervariasi"},{"huruf":"D","teks":"0,1 mm"},{"huruf":"E","teks":"1 cm"}],"kunci":"B","materi":"Pengukuran","submateri":"Jangka Sorong"}],"sedang":[{"id":"19f3f5d31a2fie","tipe":"pg","teks":"Gaya (F) didefinisikan sebagai hasil kali massa dan percepatan (F = m . a). Dimensi dari besaran gaya adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L][T]⁻²"},{"huruf":"B","teks":"[M][L]²[T]⁻²"},{"huruf":"C","teks":"[M][L]⁻¹[T]⁻²"},{"huruf":"D","teks":"[M][L][T]⁻¹"},{"huruf":"E","teks":"[M][L]²[T]⁻³"}],"kunci":"A","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f3f5d3xnw3bh","tipe":"pg","teks":"Besaran usaha (energi) merupakan besaran turunan yang tersusun dari besaran-besaran pokok ...","gambar":null,"opsi":[{"huruf":"A","teks":"massa, panjang, dan waktu"},{"huruf":"B","teks":"massa dan waktu saja"},{"huruf":"C","teks":"panjang dan waktu saja"},{"huruf":"D","teks":"massa dan panjang saja"},{"huruf":"E","teks":"panjang, waktu, dan arus listrik"}],"kunci":"A","materi":"Pengukuran","submateri":"Besaran Turunan"},{"id":"19f3f5d3mogxum","tipe":"pg","teks":"Waktu 2,5 jam jika dikonversi ke satuan sekon adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"2.500 s"},{"huruf":"B","teks":"9.000 s"},{"huruf":"C","teks":"90.000 s"},{"huruf":"D","teks":"900 s"},{"huruf":"E","teks":"15.000 s"}],"kunci":"B","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f3f5d3cmcy1z","tipe":"pg","teks":"Sebuah mobil melaju dengan kecepatan 72 km/jam. Kecepatan tersebut jika dikonversi ke satuan m/s adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"10 m/s"},{"huruf":"B","teks":"15 m/s"},{"huruf":"C","teks":"20 m/s"},{"huruf":"D","teks":"25 m/s"},{"huruf":"E","teks":"30 m/s"}],"kunci":"C","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f3f5d3scfjyi","tipe":"pg","teks":"Hasil penjumlahan 12,25 + 3,21 jika dituliskan sesuai aturan angka penting adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"15,45"},{"huruf":"B","teks":"15,4"},{"huruf":"C","teks":"15,5"},{"huruf":"D","teks":"15"},{"huruf":"E","teks":"15,47"}],"kunci":"C","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"19f3f5d3itsbvn","tipe":"pg","teks":"Sebuah persegi panjang memiliki panjang 3,42 cm dan lebar 2,5 cm. Luas persegi panjang tersebut menurut aturan angka penting adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"8,6 cm²"},{"huruf":"B","teks":"8,55 cm²"},{"huruf":"C","teks":"8,550 cm²"},{"huruf":"D","teks":"8,5 cm²"},{"huruf":"E","teks":"9,0 cm²"}],"kunci":"A","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"19f3f5d3p2iwrd","tipe":"pg","teks":"Penulisan bilangan 100 dengan 2 angka penting menggunakan notasi ilmiah yang benar adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"100"},{"huruf":"B","teks":"1,0 × 10²"},{"huruf":"C","teks":"1,00 × 10²"},{"huruf":"D","teks":"1 × 10³"},{"huruf":"E","teks":"10 × 10¹"}],"kunci":"B","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"19f3f5d39yx42p","tipe":"pg","teks":"Hasil dari (3 × 10⁴) × (2 × 10³) dalam notasi ilmiah adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"6 × 10⁷"},{"huruf":"B","teks":"6 × 10¹²"},{"huruf":"C","teks":"5 × 10⁷"},{"huruf":"D","teks":"6 × 10⁶"},{"huruf":"E","teks":"5 × 10¹²"}],"kunci":"A","materi":"Pengukuran","submateri":"Notasi Ilmiah"},{"id":"19f3f5d31jfo2q","tipe":"pg","teks":"Pada pengukuran dengan jangka sorong, skala utama menunjukkan angka 4,7 cm dan garis skala nonius yang berimpit adalah garis ke-6 (ketelitian jangka sorong 0,01 cm). Hasil pengukuran yang benar adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"4,76 cm"},{"huruf":"B","teks":"4,706 cm"},{"huruf":"C","teks":"4,66 cm"},{"huruf":"D","teks":"4,60 cm"},{"huruf":"E","teks":"4,70 cm"}],"kunci":"A","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"19f40222860ql2if4","tipe":"pg","teks":"Hasil operasi perkalian 2,5 cm x 3,42 cm menurut aturan angka penting harus ditulis dengan...","gambar":null,"opsi":[{"huruf":"A","teks":"1 angka penting"},{"huruf":"B","teks":"2 angka penting"},{"huruf":"C","teks":"3 angka penting"},{"huruf":"D","teks":"4 angka penting"},{"huruf":"E","teks":"5 angka penting"}],"kunci":"B","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"19f40222860x2tljb","tipe":"pg","teks":"Ketidakpastian (ketelitian) pada satu kali pengukuran tunggal umumnya dinyatakan sebesar...","gambar":null,"opsi":[{"huruf":"A","teks":"Seperempat skala terkecil alat ukur"},{"huruf":"B","teks":"Setengah skala terkecil alat ukur"},{"huruf":"C","teks":"Sama dengan skala terkecil alat ukur"},{"huruf":"D","teks":"Dua kali skala terkecil alat ukur"},{"huruf":"E","teks":"Tidak dapat ditentukan"}],"kunci":"B","materi":"Pengukuran","submateri":"Pengukuran"},{"id":"19f40222860twm9u7","tipe":"pg","teks":"Pada pengukuran menggunakan mikrometer sekrup, skala utama menunjukkan 5,5 mm dan skala nonius (skala putar) menunjukkan garis ke-30 yang segaris dengan garis mendatar (ketelitian skala putar 0,01 mm). Hasil pengukurannya adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"5,50 mm"},{"huruf":"B","teks":"5,53 mm"},{"huruf":"C","teks":"5,80 mm"},{"huruf":"D","teks":"8,50 mm"},{"huruf":"E","teks":"8,80 mm"}],"kunci":"C","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"19f40222860e8qvwy","tipe":"pg","teks":"Notasi ilmiah dari bilangan 0,0000523 adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"5,23 x 10^-5"},{"huruf":"B","teks":"5,23 x 10^5"},{"huruf":"C","teks":"5,23 x 10^-4"},{"huruf":"D","teks":"52,3 x 10^-6"},{"huruf":"E","teks":"0,523 x 10^-4"}],"kunci":"A","materi":"Pengukuran","submateri":"Notasi Ilmiah"},{"id":"19f402228606n5p14","tipe":"pg","teks":"Pernyataan yang paling tepat mengenai ketidakpastian relatif dan kegunaannya dalam melaporkan hasil pengukuran adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"Selisih antara nilai terbesar dan terkecil dari data pengukuran; berguna untuk menentukan nilai rata-rata"},{"huruf":"B","teks":"Hasil kali ketidakpastian mutlak dengan nilai hasil pengukuran; berguna untuk menentukan satuan yang dipakai"},{"huruf":"C","teks":"Perbandingan nilai hasil pengukuran terhadap ketidakpastian mutlaknya (x/Δx); berguna untuk menghilangkan kesalahan sistematik"},{"huruf":"D","teks":"Perbandingan ketidakpastian mutlak terhadap nilai hasil pengukuran (Δx/x), biasanya dinyatakan dalam persen; berguna untuk menunjukkan ketelitian dan membandingkan kualitas pengukuran"},{"huruf":"E","teks":"Jumlah seluruh ketidakpastian mutlak dari alat dan pengamat; berguna untuk menentukan banyaknya pengulangan pengukuran"}],"kunci":"D","materi":"Pengukuran","submateri":"Pengukuran"},{"id":"19f40222860xa1zen","tipe":"pg","teks":"Kesalahan pengukuran yang disebabkan oleh kondisi alat yang tidak dikalibrasi dengan benar (misalnya jarum penunjuk tidak pada posisi nol) disebut kesalahan...","gambar":null,"opsi":[{"huruf":"A","teks":"Acak (random)"},{"huruf":"B","teks":"Sistematik"},{"huruf":"C","teks":"Paralaks"},{"huruf":"D","teks":"Kalkulasi"},{"huruf":"E","teks":"Titik nol relatif"}],"kunci":"B","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f40222860l4x6md","tipe":"pg","teks":"Sekelompok siswa mengukur panjang meja sebanyak 5 kali dan memperoleh data: 120,1 cm; 120,3 cm; 119,9 cm; 120,0 cm; 120,2 cm. Nilai rata-rata dari pengukuran tersebut adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"119,9 cm"},{"huruf":"B","teks":"120,0 cm"},{"huruf":"C","teks":"120,1 cm"},{"huruf":"D","teks":"120,3 cm"},{"huruf":"E","teks":"600,5 cm"}],"kunci":"C","materi":"Pengukuran","submateri":"Pengukuran"},{"id":"19f40222860rrjz1i","tipe":"pg","teks":"Pernyataan yang tepat mengenai perbedaan akurasi dan presisi dalam pengukuran adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"Akurasi menyatakan kedekatan hasil ukur dengan nilai sebenarnya, presisi menyatakan konsistensi/keterulangan antar hasil ukur"},{"huruf":"B","teks":"Akurasi dan presisi memiliki pengertian yang sama persis"},{"huruf":"C","teks":"Akurasi hanya berlaku untuk pengukuran tunggal, presisi hanya untuk pengukuran berulang"},{"huruf":"D","teks":"Presisi menyatakan kedekatan dengan nilai sebenarnya, akurasi menyatakan keterulangan hasil"},{"huruf":"E","teks":"Akurasi dan presisi tidak berkaitan dengan alat ukur"}],"kunci":"A","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f40222860z15rc7","tipe":"pg","teks":"Hasil suatu pengukuran perlu dilaporkan dengan memperhatikan aturan angka penting karena...","gambar":null,"opsi":[{"huruf":"A","teks":"angka penting mencerminkan tingkat ketelitian alat ukur, sehingga pelaporan tidak memberi kesan ketelitian yang lebih tinggi dari yang sebenarnya"},{"huruf":"B","teks":"angka penting membuat hasil pengukuran memiliki digit sebanyak mungkin agar terlihat lebih teliti"},{"huruf":"C","teks":"angka penting menghilangkan sepenuhnya kesalahan acak pada pengukuran"},{"huruf":"D","teks":"angka penting hanya berfungsi untuk menyeragamkan satuan hasil pengukuran"},{"huruf":"E","teks":"semua angka nol pada hasil perhitungan harus dihilangkan agar penulisan menjadi singkat"}],"kunci":"A","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"19f40222860a1d1d2","tipe":"pg","teks":"Dimensi dari besaran tekanan (P = F/A) adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L]^-1[T]^-2"},{"huruf":"B","teks":"[M][L][T]^-2"},{"huruf":"C","teks":"[M][L]^2[T]^-2"},{"huruf":"D","teks":"[M][L]^-2[T]^-1"},{"huruf":"E","teks":"[M][L]^-1[T]^-1"}],"kunci":"A","materi":"Pengukuran","submateri":"Satuan"},{"id":"mubc188utvy9up","tipe":"pg","teks":"Semua yang termasuk BESARAN POKOK. Manakah kombinasi jawaban yang tepat?","gambar":null,"opsi":[{"huruf":"A","teks":"Kecepatan, Luas"},{"huruf":"B","teks":"Massa, Waktu, Suhu"},{"huruf":"C","teks":"Panjang, Massa, Kecepatan, Waktu, Suhu"},{"huruf":"D","teks":"Panjang, Massa, Waktu, Suhu"}],"kunci":"D","materi":"Pengukuran","submateri":"Besaran Pokok"},{"id":"mubc188ukei6jf","tipe":"pg","teks":"Centang semua yang termasuk contoh SATUAN TIDAK BAKU. Manakah kombinasi jawaban yang tepat?","gambar":null,"opsi":[{"huruf":"A","teks":"Meter, Kilogram, Sekon"},{"huruf":"B","teks":"Depa, Meter, Jengkal, Hasta"},{"huruf":"C","teks":"Depa, Jengkal, Hasta"},{"huruf":"D","teks":"Jengkal, Hasta"}],"kunci":"C","materi":"Pengukuran","submateri":"Satuan"},{"id":"mubc188vbj24tz","tipe":"pg","teks":"2 jam sama dengan … sekon.","gambar":null,"opsi":[{"huruf":"A","teks":"3.600 sekon"},{"huruf":"B","teks":"86.400 sekon"},{"huruf":"C","teks":"120 sekon"},{"huruf":"D","teks":"7.200 sekon"}],"kunci":"D","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vld959x","tipe":"pg","teks":"18 km/jam = .... m/s","gambar":null,"opsi":[{"huruf":"A","teks":"64,8 m/s"},{"huruf":"B","teks":"18 m/s"},{"huruf":"C","teks":"5 m/s"},{"huruf":"D","teks":"1,8 m/s"}],"kunci":"C","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vxt5zsp","tipe":"pg","teks":"36 km/jam = .... m/s","gambar":null,"opsi":[{"huruf":"A","teks":"3,6 m/s"},{"huruf":"B","teks":"10 m/s"},{"huruf":"C","teks":"36 m/s"},{"huruf":"D","teks":"129,6 m/s"}],"kunci":"B","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vvu571i","tipe":"pg","teks":"Konversi satuan panjang  250 cm = ... m","gambar":null,"opsi":[{"huruf":"A","teks":"7"},{"huruf":"B","teks":"2.5"},{"huruf":"C","teks":"3000"},{"huruf":"D","teks":"0,25"},{"huruf":"E","teks":"25000"}],"kunci":"B","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188va6s7bp","tipe":"pg","teks":"Konversi satuan panjang  70 mm = ... cm","gambar":null,"opsi":[{"huruf":"A","teks":"7"},{"huruf":"B","teks":"3000"},{"huruf":"C","teks":"2.5"},{"huruf":"D","teks":"0,7"},{"huruf":"E","teks":"0,07"}],"kunci":"A","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vlrrdyx","tipe":"pg","teks":"Konversi satuan massa 500 g = ... kg","gambar":null,"opsi":[{"huruf":"A","teks":"2000"},{"huruf":"B","teks":"0.5"},{"huruf":"C","teks":"3000"},{"huruf":"D","teks":"0,05"},{"huruf":"E","teks":"50"}],"kunci":"B","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vfsugjn","tipe":"pg","teks":"Konversi satuan massa 3 ton = ... kg","gambar":null,"opsi":[{"huruf":"A","teks":"2000"},{"huruf":"B","teks":"3000"},{"huruf":"C","teks":"0.5"},{"huruf":"D","teks":"3500"},{"huruf":"E","teks":"0,03"}],"kunci":"B","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vvcnuwc","tipe":"pg","teks":"Pernyataan: 1 liter sama dengan 1 dm³. Benar atau salah?","gambar":null,"opsi":[{"huruf":"A","teks":"Benar"},{"huruf":"B","teks":"Salah"}],"kunci":"A","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vuwb31u","tipe":"pg","teks":"Nilai 25.000 mm² jika diubah ke satuan m² adalah ....","gambar":null,"opsi":[{"huruf":"A","teks":"0,25 m²"},{"huruf":"B","teks":"0,025 m²"},{"huruf":"C","teks":"0,0025 m²"},{"huruf":"D","teks":"2,5 m²"}],"kunci":"C","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vhke8ct","tipe":"pg","teks":"Luas 350 cm² sama dengan ....","gambar":null,"opsi":[{"huruf":"A","teks":"0,035 m²"},{"huruf":"B","teks":"3,5 m²"},{"huruf":"C","teks":"0,35 m²"},{"huruf":"D","teks":"0,0035 m²"}],"kunci":"D","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vtyt1qp","tipe":"pg","teks":"Luas 8 dm² jika dinyatakan dalam m² adalah ....","gambar":null,"opsi":[{"huruf":"A","teks":"0,08 m²"},{"huruf":"B","teks":"0,008 m²"},{"huruf":"C","teks":"0,8 m²"},{"huruf":"D","teks":"8 m²"}],"kunci":"A","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vfbght9","tipe":"pg","teks":"Luas 75.000 mm² setara dengan ....","gambar":null,"opsi":[{"huruf":"A","teks":"0,075 m²"},{"huruf":"B","teks":"0,0075 m²"},{"huruf":"C","teks":"7,5 m²"},{"huruf":"D","teks":"0,75 m²"}],"kunci":"A","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vq20h80","tipe":"pg","teks":"Waktu 1 jam sama dengan ....","gambar":null,"opsi":[{"huruf":"A","teks":"600 sekon"},{"huruf":"B","teks":"60 sekon"},{"huruf":"C","teks":"3.600 sekon"},{"huruf":"D","teks":"36.000 sekon"}],"kunci":"C","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188v7eoacj","tipe":"pg","teks":"Waktu 2,5 jam sama dengan ....","gambar":null,"opsi":[{"huruf":"A","teks":"7.200 sekon"},{"huruf":"B","teks":"9.000 sekon"},{"huruf":"C","teks":"8.000 sekon"},{"huruf":"D","teks":"9.600 sekon"}],"kunci":"B","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vz28b9t","tipe":"pg","teks":"72 km/jam = .... m/s","gambar":null,"opsi":[{"huruf":"A","teks":"20 m/s"},{"huruf":"B","teks":"7,2 m/s"},{"huruf":"C","teks":"259,2 m/s"},{"huruf":"D","teks":"72 m/s"}],"kunci":"A","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vzx08zl","tipe":"pg","teks":"Massa 7,5 ton setara dengan ....","gambar":null,"opsi":[{"huruf":"A","teks":"750.000 kg"},{"huruf":"B","teks":"7.500 kg"},{"huruf":"C","teks":"75.000 kg"},{"huruf":"D","teks":"750 kg"}],"kunci":"B","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vuostio","tipe":"pg","teks":"Panjang 2,5 km sama dengan ....","gambar":null,"opsi":[{"huruf":"A","teks":"25.000 m"},{"huruf":"B","teks":"250 m"},{"huruf":"C","teks":"25 m"},{"huruf":"D","teks":"2.500 m"}],"kunci":"D","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vk9ie2u","tipe":"pg","teks":"Panjang 0,8 km sama dengan ....","gambar":null,"opsi":[{"huruf":"A","teks":"800 m"},{"huruf":"B","teks":"80 m"},{"huruf":"C","teks":"8 m"},{"huruf":"D","teks":"8.000 m"}],"kunci":"A","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vpiegi9","tipe":"pg","teks":"Muatan listrik 4 μC (mikrocoulomb) sama dengan ....","gambar":null,"opsi":[{"huruf":"A","teks":"4 × 10⁶ C"},{"huruf":"B","teks":"4 × 10⁻⁶ C"},{"huruf":"C","teks":"4 × 10⁻⁹ C"},{"huruf":"D","teks":"4 × 10⁻³ C"}],"kunci":"B","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vskraw7","tipe":"pg","teks":"Muatan listrik 250 μC sama dengan ....","gambar":null,"opsi":[{"huruf":"A","teks":"2,5 × 10⁴ C"},{"huruf":"B","teks":"2,5 × 10⁻⁴ C"},{"huruf":"C","teks":"2,5 × 10⁻³ C"},{"huruf":"D","teks":"2,5 × 10⁻⁶ C"}],"kunci":"B","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vww8xrt","tipe":"pg","teks":"Kapasitas data 20 GByte sama dengan ....","gambar":null,"opsi":[{"huruf":"A","teks":"20 × 10⁹ Byte"},{"huruf":"B","teks":"20 × 10⁶ Byte"},{"huruf":"C","teks":"20 × 10³ Byte"},{"huruf":"D","teks":"20 × 10¹² Byte"}],"kunci":"A","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vbwfxog","tipe":"pg","teks":"Panjang 25 nm sama dengan ....","gambar":null,"opsi":[{"huruf":"A","teks":"2,5 × 10⁻⁸ m"},{"huruf":"B","teks":"25 × 10⁻⁶ m"},{"huruf":"C","teks":"2,5 × 10⁻⁹ m"},{"huruf":"D","teks":"25 × 10⁻⁹ m"}],"kunci":"A","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188v16opzh","tipe":"pg","teks":"Luas 5000 cm² jika dinyatakan dalam m² adalah ....","gambar":null,"opsi":[{"huruf":"A","teks":"500 m²"},{"huruf":"B","teks":"5 m²"},{"huruf":"C","teks":"50 m²"},{"huruf":"D","teks":"0,5 m²"}],"kunci":"B","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubc188vn2fysk","tipe":"pg","teks":"Bentuk notasi ilmiah dari 45.000 adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"45 × 10³"},{"huruf":"B","teks":"4,5 × 10³"},{"huruf":"C","teks":"4,5 × 10⁴"},{"huruf":"D","teks":"0,45 × 10⁵"}],"kunci":"C","materi":"Pengukuran","submateri":"Notasi Ilmiah"},{"id":"mubc188verfnw7","tipe":"pg","teks":"Bentuk notasi ilmiah dari 0,0032 adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"0,32 × 10⁻²"},{"huruf":"B","teks":"3,2 × 10⁻³"},{"huruf":"C","teks":"3,2 × 10³"},{"huruf":"D","teks":"32 × 10⁻⁴"}],"kunci":"B","materi":"Pengukuran","submateri":"Notasi Ilmiah"},{"id":"mubc188vc81mx4","tipe":"pg","teks":"Semua bilangan ini  ditulis dengan notasi ilmiah yang BENAR (memenuhi 1 ≤ a \u003c 10). Manakah kombinasi jawaban yang tepat?","gambar":null,"opsi":[{"huruf":"A","teks":"45 × 10³ ; 0,8 × 10⁵ ; 12 × 10²"},{"huruf":"B","teks":"3,5 × 10⁴ ; 45 × 10³  ; 7,2 × 10⁻²  ;  9,1 × 10¹"},{"huruf":"C","teks":"7,2 × 10⁻² ; 91 × 10¹"},{"huruf":"D","teks":"3,5 × 10⁴, 7,2 × 10⁻², 9,1 × 10¹"},{"huruf":"E","teks":"12,2 × 10⁻² ; 11 × 10¹"}],"kunci":"D","materi":"Pengukuran","submateri":"Notasi Ilmiah"},{"id":"mubc188vasx1vk","tipe":"pg","teks":"Bilangan berikut dengan bentuk notasi ilmiahnya 4.000 adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"4 × 10³"},{"huruf":"B","teks":"6 × 10⁻³"},{"huruf":"C","teks":"5,2 × 10⁵"},{"huruf":"D","teks":"9 × 10⁻⁴"},{"huruf":"E","teks":"5 × 10⁻⁴"}],"kunci":"A","materi":"Pengukuran","submateri":"Notasi Ilmiah"},{"id":"mubc188vrv1z1q","tipe":"pg","teks":"Centang semua bilangan berikut yang memiliki 3 angka penting. Manakah kombinasi jawaban yang tepat?","gambar":null,"opsi":[{"huruf":"A","teks":"0,0032, 1.250"},{"huruf":"B","teks":"4,50, 0,0032, 206, 3,20 × 10², 0,00500"},{"huruf":"C","teks":"4,50, 206, 3,20 × 10², 0,00500"},{"huruf":"D","teks":"206, 3,20 × 10², 0,00500"}],"kunci":"C","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"mubc188vg5gwnw","tipe":"pg","teks":"Centang semua ATURAN angka penting berikut yang BENAR. Manakah kombinasi jawaban yang tepat?","gambar":null,"opsi":[{"huruf":"A","teks":"Angka nol di antara dua angka bukan nol termasuk angka penting, Angka nol di belakang koma desimal dan di belakang angka bukan nol termasuk angka penting"},{"huruf":"B","teks":"Angka nol yang terletak di depan angka bukan nol (sebelum angka pasti) termasuk angka penting, Notasi ilmiah tidak dapat digunakan untuk menunjukkan jumlah angka penting, Semakin banyak angka penting suatu hasil pengukuran, semakin rendah ketelitiannya"},{"huruf":"C","teks":"Semua angka bukan nol termasuk angka penting, Angka nol yang terletak di depan angka bukan nol (sebelum angka pasti) termasuk angka penting, Angka nol di antara dua angka bukan nol termasuk angka penting, Angka nol di belakang koma desimal dan di belakang angka bukan nol termasuk angka penting"},{"huruf":"D","teks":"Semua angka bukan nol termasuk angka penting, Angka nol di antara dua angka bukan nol termasuk angka penting, Angka nol di belakang koma desimal dan di belakang angka bukan nol termasuk angka penting"}],"kunci":"D","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"mubc188vhfcl3g","tipe":"pg","teks":"Bagian jangka sorong yang digunakan untuk mengukur diameter DALAM suatu benda (misal cincin) adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"Baut pengunci"},{"huruf":"B","teks":"Tangkai ukur kedalaman"},{"huruf":"C","teks":"Rahang dalam (bawah)"},{"huruf":"D","teks":"Rahang luar (atas)"}],"kunci":"C","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188v6jhi9g","tipe":"pg","teks":"Semua fungsi pengukuran yang DAPAT dilakukan oleh jangka sorong. Manakah kombinasi jawaban yang tepat?","gambar":null,"opsi":[{"huruf":"A","teks":"Mengukur diameter luar benda, Mengukur diameter dalam suatu lubang, Mengukur kedalaman suatu lubang, Mengukur panjang benda kecil secara teliti"},{"huruf":"B","teks":"Mengukur diameter luar benda, Mengukur diameter dalam suatu lubang, Mengukur kedalaman suatu lubang, Mengukur massa benda, Mengukur panjang benda kecil secara teliti"},{"huruf":"C","teks":"Mengukur massa benda, Mengukur suhu benda"},{"huruf":"D","teks":"Mengukur diameter dalam suatu lubang, Mengukur kedalaman suatu lubang, Mengukur panjang benda kecil secara teliti"}],"kunci":"A","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188v5yw3qx","tipe":"pg","teks":"Semua PERNYATAAN berikut yang BENAR tentang jangka sorong. Manakah kombinasi jawaban yang tepat?","gambar":null,"opsi":[{"huruf":"A","teks":"Ketelitian jangka sorong sama dengan ketelitian mikrometer sekrup, Jangka sorong tidak dapat mengukur kedalaman lubang"},{"huruf":"B","teks":"Jangka sorong memiliki dua skala, yaitu skala utama dan skala nonius, Jangka sorong lebih teliti daripada mistar, Skala nonius dibaca dari garis yang paling berimpit dengan skala utama, Ketelitian jangka sorong sama dengan ketelitian mikrometer sekrup, Skala utama dibaca dari angka tepat sebelum garis nol nonius"},{"huruf":"C","teks":"Jangka sorong memiliki dua skala, yaitu skala utama dan skala nonius, Jangka sorong lebih teliti daripada mistar, Skala nonius dibaca dari garis yang paling berimpit dengan skala utama, Skala utama dibaca dari angka tepat sebelum garis nol nonius"},{"huruf":"D","teks":"Jangka sorong lebih teliti daripada mistar, Skala nonius dibaca dari garis yang paling berimpit dengan skala utama, Skala utama dibaca dari angka tepat sebelum garis nol nonius"}],"kunci":"C","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188vaemja1","tipe":"pg","teks":"Hitunglah hasil pengukuran jangka sorong berikut (ketelitian 0,1 mm). Gunakan rumus: hasil = skala utama + (skala nonius × 0,1 mm). — Skala utama 12 mm, garis nonius berimpit ke-5 → hasil = ... mm","gambar":null,"opsi":[{"huruf":"A","teks":"45,8"},{"huruf":"B","teks":"12,5"},{"huruf":"C","teks":"30,2"},{"huruf":"D","teks":"30,2"},{"huruf":"E","teks":"14,5"}],"kunci":"B","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188vdyf02h","tipe":"pg","teks":"Hitunglah hasil pengukuran jangka sorong berikut (ketelitian 0,1 mm). Gunakan rumus: hasil = skala utama + (skala nonius × 0,1 mm). — Skala utama 30 mm, garis nonius berimpit ke-2 → hasil = ... mm","gambar":null,"opsi":[{"huruf":"A","teks":"12,5"},{"huruf":"B","teks":"45,8"},{"huruf":"C","teks":"30,2"},{"huruf":"D","teks":"40,3"},{"huruf":"E","teks":"30,4"}],"kunci":"C","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188vgawe6f","tipe":"pg","teks":"Hitunglah hasil pengukuran jangka sorong berikut (ketelitian 0,1 mm). Gunakan rumus: hasil = skala utama + (skala nonius × 0,1 mm). — Skala utama 45 mm, garis nonius berimpit ke-8 → hasil = ... mm","gambar":null,"opsi":[{"huruf":"A","teks":"45,8"},{"huruf":"B","teks":"12,5"},{"huruf":"C","teks":"30,2"},{"huruf":"D","teks":"14,5"},{"huruf":"E","teks":"13,2"}],"kunci":"A","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188vbknfdd","tipe":"pg","teks":"Bagian mikrometer sekrup yang berfungsi memutar thimble dengan tekanan konsisten agar benda tidak rusak adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"Laras (sleeve)"},{"huruf":"B","teks":"Roda bergerigi (ratchet)"},{"huruf":"C","teks":"Pengunci (lock)"},{"huruf":"D","teks":"Poros tetap (anvil)"}],"kunci":"B","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188vjlmbxe","tipe":"pg","teks":"Centang semua benda berikut yang PALING TEPAT diukur menggunakan mikrometer sekrup. Manakah kombinasi jawaban yang tepat?","gambar":null,"opsi":[{"huruf":"A","teks":"Diameter kawat tipis, Diameter kabel kecil"},{"huruf":"B","teks":"Panjang meja belajar, Panjang lapangan sepak bola, Tinggi badan siswa"},{"huruf":"C","teks":"Tebal selembar kertas, Diameter kawat tipis, Diameter kabel kecil"},{"huruf":"D","teks":"Tebal selembar kertas, Diameter kawat tipis, Panjang meja belajar, Diameter kabel kecil"}],"kunci":"C","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188vol252t","tipe":"pg","teks":"Centang semua PERNYATAAN berikut yang BENAR tentang mikrometer sekrup. Manakah kombinasi jawaban yang tepat?","gambar":null,"opsi":[{"huruf":"A","teks":"Mikrometer sekrup memiliki ketelitian 0,01 mm, Skala putar terletak pada bagian thimble, Mikrometer sekrup kurang teliti dibanding jangka sorong, Skala utama terletak pada bagian laras (sleeve), Ratchet digunakan agar benda tidak terjepit berlebihan"},{"huruf":"B","teks":"Mikrometer sekrup kurang teliti dibanding jangka sorong, Mikrometer sekrup hanya bisa mengukur benda yang sangat besar"},{"huruf":"C","teks":"Skala putar terletak pada bagian thimble, Skala utama terletak pada bagian laras (sleeve), Ratchet digunakan agar benda tidak terjepit berlebihan"},{"huruf":"D","teks":"Mikrometer sekrup memiliki ketelitian 0,01 mm, Skala putar terletak pada bagian thimble, Skala utama terletak pada bagian laras (sleeve), Ratchet digunakan agar benda tidak terjepit berlebihan"}],"kunci":"D","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188vnhu8yc","tipe":"pg","teks":"Hitunglah hasil pengukuran mikrometer sekrup berikut (ketelitian 0,01 mm). Gunakan rumus: hasil = skala utama + (skala putar × 0,01 mm). — Skala utama 4,5 mm, skala putar berimpit ke-20 → hasil = ... mm","gambar":null,"opsi":[{"huruf":"A","teks":"8,6"},{"huruf":"B","teks":"4,7"},{"huruf":"C","teks":"6,35"}],"kunci":"B","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188vesbags","tipe":"pg","teks":"Hitunglah hasil pengukuran mikrometer sekrup berikut (ketelitian 0,01 mm). Skala utama 6,0 mm, skala putar berimpit ke-35 → hasil = ... mm","gambar":null,"opsi":[{"huruf":"A","teks":"6,35"},{"huruf":"B","teks":"8,6"},{"huruf":"C","teks":"4,7"},{"huruf":"D","teks":"6,5"},{"huruf":"E","teks":"6,350"}],"kunci":"A","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188vm7tzbw","tipe":"pg","teks":"Hitunglah hasil pengukuran mikrometer sekrup berikut (ketelitian 0,01 mm). Skala utama 8,5 mm, skala putar berimpit ke-10 → hasil = ... mm","gambar":null,"opsi":[{"huruf":"A","teks":"4,7"},{"huruf":"B","teks":"8,6"},{"huruf":"C","teks":"6,35"},{"huruf":"D","teks":"6,4"},{"huruf":"E","teks":"6,53"}],"kunci":"B","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188v0z4ycv","tipe":"pg","teks":"Lengkapi pernyataan berikut mengenai mikrometer sekrup. — Satuan ketelitian mikrometer sekrup adalah ... mm","gambar":null,"opsi":[{"huruf":"A","teks":"thimble"},{"huruf":"B","teks":"0,01"},{"huruf":"C","teks":"poros tetap"}],"kunci":"B","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188vq6krm7","tipe":"pg","teks":"Pada bagian mikrometer sekrup berikut dengan fungsinya. Fungsi Skala putar (thimble) adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"Memutar thimble dengan tekanan konsisten"},{"huruf":"B","teks":"Landasan diam tempat benda diletakkan"},{"huruf":"C","teks":"Bagian yang bergerak menjepit benda"},{"huruf":"D","teks":"Membantu membaca angka desimal hasil pengukuran"}],"kunci":"D","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188vqs6yhx","tipe":"pg","teks":"Jodohkan alat ukur berikut dengan benda yang paling cocok diukur olehnya. — Mikrometer sekrup berpasangan dengan…","gambar":null,"opsi":[{"huruf":"A","teks":"Massa suatu benda"},{"huruf":"B","teks":"Diameter dalam pipa kecil"},{"huruf":"C","teks":"Panjang buku tulis"},{"huruf":"D","teks":"Diameter kawat tipis"}],"kunci":"D","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188v6gti4z","tipe":"pg","teks":"Jodohkan alat ukur berikut dengan benda yang paling cocok diukur olehnya. — Neraca berpasangan dengan…","gambar":null,"opsi":[{"huruf":"A","teks":"Panjang buku tulis"},{"huruf":"B","teks":"Massa suatu benda"},{"huruf":"C","teks":"Diameter kawat tipis"},{"huruf":"D","teks":"Diameter dalam pipa kecil"}],"kunci":"B","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188vzd181n","tipe":"pg","teks":"Pernyataan: Mikrometer sekrup memiliki ketelitian sepuluh kali lebih tinggi daripada jangka sorong. Benar atau salah?","gambar":null,"opsi":[{"huruf":"A","teks":"Benar"},{"huruf":"B","teks":"Salah"}],"kunci":"A","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188vplpm17","tipe":"pg","teks":"Pernyataan: Skala putar pada mikrometer sekrup dibaca dari garis pada laras yang berimpit dengan sumbu thimble. Benar atau salah?","gambar":null,"opsi":[{"huruf":"A","teks":"Salah"},{"huruf":"B","teks":"Benar"}],"kunci":"A","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubce5aune65h4","tipe":"pg","teks":"Massa jenis didefinisikan sebagai perbandingan massa terhadap volume benda. Dimensi dari besaran massa jenis adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L]^-3"},{"huruf":"B","teks":"[M][L]^3"},{"huruf":"C","teks":"[M][L]^-2"},{"huruf":"D","teks":"[M]^-1[L]^3"},{"huruf":"E","teks":"[M][L]^-3[T]^-1"}],"kunci":"A","materi":"Pengukuran","submateri":"Dimensi"},{"id":"mubce5auna5rtd","tipe":"pg","teks":"Berdasarkan hukum II Newton, F = m·a. Dimensi dari besaran gaya adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L][T]^-1"},{"huruf":"B","teks":"[M][L]^2[T]^-2"},{"huruf":"C","teks":"[M][L][T]^-2"},{"huruf":"D","teks":"[M][L]^-1[T]^-2"},{"huruf":"E","teks":"[M][T]^-2"}],"kunci":"C","materi":"Pengukuran","submateri":"Dimensi"},{"id":"mubce5auagbe5h","tipe":"pg","teks":"Usaha dirumuskan sebagai W = F·s. Dimensi dari besaran usaha (dan juga energi) adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L][T]^-2"},{"huruf":"B","teks":"[M][L]^2[T]^-2"},{"huruf":"C","teks":"[M][L]^2[T]^-3"},{"huruf":"D","teks":"[M][L]^2[T]^-1"},{"huruf":"E","teks":"[M]^2[L][T]^-2"}],"kunci":"B","materi":"Pengukuran","submateri":"Dimensi"},{"id":"mubce5auwm80j2","tipe":"pg","teks":"Daya adalah usaha yang dilakukan tiap satuan waktu (P = W/t). Dimensi dari besaran daya adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L]^2[T]^-2"},{"huruf":"B","teks":"[M][L][T]^-3"},{"huruf":"C","teks":"[M][L]^2[T]^-1"},{"huruf":"D","teks":"[M][L]^2[T]^-3"},{"huruf":"E","teks":"[M][L]^3[T]^-2"}],"kunci":"D","materi":"Pengukuran","submateri":"Dimensi"},{"id":"mubce5au0yvf5f","tipe":"pg","teks":"Pasangan besaran berikut yang memiliki dimensi sama adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"Gaya dan momentum"},{"huruf":"B","teks":"Momentum dan impuls"},{"huruf":"C","teks":"Usaha dan daya"},{"huruf":"D","teks":"Tekanan dan gaya"},{"huruf":"E","teks":"Massa jenis dan berat jenis"}],"kunci":"B","materi":"Pengukuran","submateri":"Dimensi"}],"sukar":[{"id":"19f3f5d3ubwsv5","tipe":"pg","teks":"Pada pengukuran dengan mikrometer sekrup, skala utama menunjukkan 5,5 mm dan skala putar (thimble) menunjukkan angka 28 (ketelitian 0,01 mm). Hasil pengukuran yang benar adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"5,78 mm"},{"huruf":"B","teks":"5,528 mm"},{"huruf":"C","teks":"5,780 mm"},{"huruf":"D","teks":"8,3 mm"},{"huruf":"E","teks":"5,52 mm"}],"kunci":"A","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"19f40222860bktm36","tipe":"pg","teks":"Dimensi konstanta gravitasi umum G pada persamaan gaya gravitasi Newton F = G·m₁·m₂/r² adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L]³[T]⁻²"},{"huruf":"B","teks":"[M]⁻¹[L]²[T]⁻²"},{"huruf":"C","teks":"[M]⁻²[L]³[T]⁻²"},{"huruf":"D","teks":"[M]⁻¹[L]⁻³[T]²"},{"huruf":"E","teks":"[M]⁻¹[L]³[T]⁻²"}],"kunci":"E","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f402228603wc6qp","tipe":"pg","teks":"Sebuah pelat logam diukur dengan jangka sorong: panjang = 5,55 cm dan lebar = 2,20 cm. Luas pelat yang dilaporkan dengan aturan angka penting yang benar adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"12 cm^2"},{"huruf":"B","teks":"12,2 cm^2"},{"huruf":"C","teks":"12,21 cm^2"},{"huruf":"D","teks":"12,210 cm^2"},{"huruf":"E","teks":"12,2100 cm^2"}],"kunci":"B","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"19f40222860ukv2s5","tipe":"pg","teks":"Sebuah kubus diukur sisi-sisinya dengan jangka sorong dan diperoleh panjang rusuk s = 2,50 cm. Volume kubus tersebut menurut aturan angka penting adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"15 cm^3"},{"huruf":"B","teks":"15,6 cm^3"},{"huruf":"C","teks":"15,63 cm^3"},{"huruf":"D","teks":"15,625 cm^3"},{"huruf":"E","teks":"16 cm^3"}],"kunci":"B","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"19f40222860hdxx95","tipe":"pg","teks":"Pada pengukuran diameter kawat dengan mikrometer sekrup, skala utama menunjukkan 4,5 mm dan skala putar (nonius) menunjukkan garis ke-27 yang segaris dengan garis mendatar (ketelitian skala putar 0,01 mm). Hasil pengukuran diameter kawat beserta ketidakpastiannya ditulis...","gambar":null,"opsi":[{"huruf":"A","teks":"d = (4,50 ± 0,005) mm"},{"huruf":"B","teks":"d = (4,527 ± 0,005) mm"},{"huruf":"C","teks":"d = (4,77 ± 0,01) mm"},{"huruf":"D","teks":"d = (4,770 ± 0,005) mm"},{"huruf":"E","teks":"d = (7,20 ± 0,005) mm"}],"kunci":"D","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"19f402228606itl12","tipe":"pg","teks":"Hasil suatu pengukuran fisis tidak pernah dapat dinyatakan secara eksak (pasti mutlak). Penyebab yang paling tepat adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"Karena satuan besaran fisis selalu berubah-ubah menurut kesepakatan pengamat"},{"huruf":"B","teks":"Karena nilai sebenarnya suatu besaran fisis tidak memiliki angka penting sama sekali"},{"huruf":"C","teks":"Karena rumus yang dipakai dalam pengukuran selalu bersifat pendekatan, bukan hubungan yang pasti"},{"huruf":"D","teks":"Karena kesalahan pengukuran hanya berasal dari kecerobohan pengamat dan dapat dihilangkan sepenuhnya dengan berlatih"},{"huruf":"E","teks":"Karena adanya keterbatasan alat ukur (skala terkecil/kalibrasi) dan keterbatasan pengamat (misalnya paralaks) yang menimbulkan kesalahan sistematik dan kesalahan acak"}],"kunci":"E","materi":"Pengukuran","submateri":"Pengukuran"},{"id":"19f402228604jtrc3","tipe":"pg","teks":"Sebuah bandul sederhana memiliki periode T = 2π√(L/g). Melalui analisis dimensi (tanpa memperhitungkan konstanta 2π), dimensi dari √(L/g) adalah... dan persamaan tersebut...","gambar":null,"opsi":[{"huruf":"A","teks":"[T], sehingga persamaan konsisten secara dimensi"},{"huruf":"B","teks":"[T]², sehingga persamaan tidak konsisten secara dimensi"},{"huruf":"C","teks":"[L], sehingga persamaan tidak konsisten secara dimensi"},{"huruf":"D","teks":"[T]⁻¹, sehingga persamaan tidak konsisten secara dimensi"},{"huruf":"E","teks":"[L][T]⁻¹, sehingga persamaan tidak konsisten secara dimensi"}],"kunci":"A","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f40222860jfskc0","tipe":"pg","teks":"Hasil pengukuran panjang dan lebar suatu pelat masing-masing 8,60 cm dan 3,0 cm. Keliling pelat tersebut yang dilaporkan sesuai aturan angka penting (untuk operasi penjumlahan) adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"23,2 cm"},{"huruf":"B","teks":"23,20 cm"},{"huruf":"C","teks":"23 cm"},{"huruf":"D","teks":"23,199 cm"},{"huruf":"E","teks":"24 cm"}],"kunci":"A","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"19f40222860yyqfp4","tipe":"pg","teks":"Pada pengukuran diameter sebuah bola kecil menggunakan jangka sorong, diperoleh tiga kali pengulangan: 1,25 cm; 1,27 cm; dan 1,26 cm. Nilai rata-rata pengukuran dan alasan pengukuran berulang lebih disarankan dibandingkan pengukuran tunggal adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"1,25 cm; agar kesalahan sistematik alat hilang sepenuhnya"},{"huruf":"B","teks":"1,27 cm; agar hasil pengukuran sama persis dengan nilai sebenarnya"},{"huruf":"C","teks":"1,26 cm; karena pengukuran berulang meningkatkan ketelitian (skala terkecil) alat ukur"},{"huruf":"D","teks":"1,26 cm; karena dapat memperkecil pengaruh kesalahan acak sehingga hasil lebih mendekati nilai sebenarnya"},{"huruf":"E","teks":"3,78 cm; karena dapat memperkecil pengaruh kesalahan acak sehingga hasil lebih mendekati nilai sebenarnya"}],"kunci":"D","materi":"Pengukuran","submateri":"Pengukuran"},{"id":"mubce5auku2qfr","tipe":"pg","teks":"Gaya gravitasi antara dua benda dinyatakan dengan F = G·m₁·m₂/r². Dimensi dari tetapan gravitasi umum G adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L]^3[T]^-2"},{"huruf":"B","teks":"[M]^-1[L]^3[T]^-2"},{"huruf":"C","teks":"[M]^-1[L]^2[T]^-2"},{"huruf":"D","teks":"[M]^-2[L]^3[T]^-2"},{"huruf":"E","teks":"[M]^-1[L]^3[T]^-1"}],"kunci":"B","materi":"Pengukuran","submateri":"Dimensi"},{"id":"mubce5aun10f8k","tipe":"pg","teks":"Modulus Young didefinisikan sebagai perbandingan tegangan (gaya per satuan luas) terhadap regangan (pertambahan panjang per panjang mula-mula). Dimensi modulus Young adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L][T]^-2"},{"huruf":"B","teks":"[M][L]^-1[T]^-2"},{"huruf":"C","teks":"[M][L]^-2[T]^-2"},{"huruf":"D","teks":"[M][T]^-2"},{"huruf":"E","teks":"[M][L]^2[T]^-2"}],"kunci":"B","materi":"Pengukuran","submateri":"Dimensi"},{"id":"mubce5aunelajd","tipe":"pg","teks":"Gaya gesek yang dialami bola kecil berjari-jari r yang bergerak dengan kecepatan v di dalam fluida kental memenuhi hukum Stokes: F = 6πηrv. Dimensi koefisien viskositas η adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L]^-1[T]^-1"},{"huruf":"B","teks":"[M][L]^-1[T]^-2"},{"huruf":"C","teks":"[M][L][T]^-1"},{"huruf":"D","teks":"[M][L]^-2[T]^-1"},{"huruf":"E","teks":"[M][T]^-1"}],"kunci":"A","materi":"Pengukuran","submateri":"Dimensi"},{"id":"mubce5aui4uecb","tipe":"pg","teks":"Periode getaran sebuah benda bermassa m pada pegas dengan tetapan k dinyatakan sebagai T = C·m^x·k^y, dengan C sebuah tetapan tak berdimensi. Berdasarkan analisis dimensional, nilai x dan y berturut-turut adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"x = 1/2 dan y = 1/2"},{"huruf":"B","teks":"x = 1/2 dan y = -1/2"},{"huruf":"C","teks":"x = -1/2 dan y = 1/2"},{"huruf":"D","teks":"x = 1 dan y = -1"},{"huruf":"E","teks":"x = -1 dan y = 1"}],"kunci":"B","materi":"Pengukuran","submateri":"Dimensi"},{"id":"mubce5audkdca2","tipe":"pg","teks":"Energi sebuah foton memenuhi persamaan E = h·f, dengan f adalah frekuensi. Dimensi tetapan Planck h adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L]^2[T]^-2"},{"huruf":"B","teks":"[M][L]^2[T]^-3"},{"huruf":"C","teks":"[M][L]^2[T]^-1"},{"huruf":"D","teks":"[M][L][T]^-1"},{"huruf":"E","teks":"[M][L]^2[T]"}],"kunci":"C","materi":"Pengukuran","submateri":"Dimensi"}]},"esai":{"mudah":[],"sedang":[],"sukar":[]}};
+  var TARGET = {"pg":{"mudah":10,"sedang":15,"sukar":5},"esai":{"mudah":0,"sedang":0,"sukar":0}};
+  var SUBMATERI_AKTIF = ["Angka Penting","Notasi Ilmiah","Pengukuran","Besaran Pokok","Besaran Turunan","Satuan","Dimensi","Jangka Sorong","Konversi Satuan","Mikrometer Sekrup"];
+  var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyacljP1sbrCMncJ9X8kwZ2bTDRNGvB6q2Jjndt84LH1S2CEfCX11jcI2caH0jFBWp7/exec";
+  var DURATION_SECONDS = 3600;
+  var ANTI_CURANG = true;
+  var BATAS_PELANGGARAN = 3;
+  var TAMPILKAN_SKOR = true;
+  var KELOMPOKKAN_JENIS = true;
+  var MODE_SOAL = "sama";
+  var SOAL_TETAP = [{"id":"mubc188vhbkkjh","tipe":"pg","teks":"5 km sama dengan … m.","gambar":null,"opsi":[{"huruf":"A","teks":"500 m"},{"huruf":"B","teks":"50.000 m"},{"huruf":"C","teks":"5.000 m"},{"huruf":"D","teks":"50 m"}],"kunci":"C","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"19f3f5d33nbq2e","tipe":"pg","teks":"Besaran berikut yang merupakan besaran turunan adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"Panjang"},{"huruf":"B","teks":"Waktu"},{"huruf":"C","teks":"Kecepatan"},{"huruf":"D","teks":"Suhu"},{"huruf":"E","teks":"Jumlah zat"}],"kunci":"C","materi":"Pengukuran","submateri":"Besaran Turunan"},{"id":"19f3f5d36u56yp","tipe":"pg","teks":"Notasi ilmiah dari bilangan 4.500.000 adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"4,5 × 10⁵"},{"huruf":"B","teks":"4,5 × 10⁶"},{"huruf":"C","teks":"45 × 10⁵"},{"huruf":"D","teks":"0,45 × 10⁷"},{"huruf":"E","teks":"4,5 × 10⁷"}],"kunci":"B","materi":"Pengukuran","submateri":"Notasi Ilmiah"},{"id":"19f402228609ebg0n","tipe":"pg","teks":"Bilangan hasil pengukuran 0,00450 memiliki jumlah angka penting sebanyak...","gambar":null,"opsi":[{"huruf":"A","teks":"2"},{"huruf":"B","teks":"3"},{"huruf":"C","teks":"4"},{"huruf":"D","teks":"5"},{"huruf":"E","teks":"6"}],"kunci":"B","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"19f3f5d37qx1pu","tipe":"pg","teks":"Ketelitian (skala terkecil) mikrometer sekrup pada umumnya adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"0,1 mm"},{"huruf":"B","teks":"0,05 mm"},{"huruf":"C","teks":"0,01 mm"},{"huruf":"D","teks":"1 mm"},{"huruf":"E","teks":"0,005 mm"}],"kunci":"C","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"19f3f5d3rgbjeq","tipe":"pg","teks":"Berikut ini yang termasuk besaran pokok dalam Sistem Internasional adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"Kecepatan"},{"huruf":"B","teks":"Massa"},{"huruf":"C","teks":"Gaya"},{"huruf":"D","teks":"Luas"},{"huruf":"E","teks":"Volume"}],"kunci":"B","materi":"Pengukuran","submateri":"Satuan"},{"id":"mubc188v8vwmhw","tipe":"pg","teks":"Ketelitian  Jangka sorong adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"Bervariasi"},{"huruf":"B","teks":"0,1 mm"},{"huruf":"C","teks":"1 mm"},{"huruf":"D","teks":"0,01 mm"},{"huruf":"E","teks":"0,01 cm"}],"kunci":"B","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"19f402228602w28v4","tipe":"pg","teks":"Alat yang digunakan untuk mengukur massa suatu benda di laboratorium adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"Amperemeter"},{"huruf":"B","teks":"Neraca (timbangan)"},{"huruf":"C","teks":"Termometer"},{"huruf":"D","teks":"Stopwatch"},{"huruf":"E","teks":"Jangka sorong"}],"kunci":"B","materi":"Pengukuran","submateri":"Besaran Pokok"},{"id":"19f3f5d3cx4ayj","tipe":"pg","teks":"Massa 750 gram jika dikonversi ke satuan kilogram sama dengan ...","gambar":null,"opsi":[{"huruf":"A","teks":"0,075 kg"},{"huruf":"B","teks":"0,75 kg"},{"huruf":"C","teks":"7,5 kg"},{"huruf":"D","teks":"75 kg"},{"huruf":"E","teks":"0,0075 kg"}],"kunci":"B","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f40222860onclnm","tipe":"pg","teks":"Ketelitian (nilai skala terkecil) sebuah mistar/penggaris pada umumnya adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"0,01 mm"},{"huruf":"B","teks":"0,05 mm"},{"huruf":"C","teks":"0,1 mm"},{"huruf":"D","teks":"0,5 mm"},{"huruf":"E","teks":"1 mm"}],"kunci":"E","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"19f3f5d3scfjyi","tipe":"pg","teks":"Hasil penjumlahan 12,25 + 3,21 jika dituliskan sesuai aturan angka penting adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"15,45"},{"huruf":"B","teks":"15,4"},{"huruf":"C","teks":"15,5"},{"huruf":"D","teks":"15"},{"huruf":"E","teks":"15,47"}],"kunci":"C","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"mubc188vg5gwnw","tipe":"pg","teks":"Centang semua ATURAN angka penting berikut yang BENAR. Manakah kombinasi jawaban yang tepat?","gambar":null,"opsi":[{"huruf":"A","teks":"Angka nol di antara dua angka bukan nol termasuk angka penting, Angka nol di belakang koma desimal dan di belakang angka bukan nol termasuk angka penting"},{"huruf":"B","teks":"Angka nol yang terletak di depan angka bukan nol (sebelum angka pasti) termasuk angka penting, Notasi ilmiah tidak dapat digunakan untuk menunjukkan jumlah angka penting, Semakin banyak angka penting suatu hasil pengukuran, semakin rendah ketelitiannya"},{"huruf":"C","teks":"Semua angka bukan nol termasuk angka penting, Angka nol yang terletak di depan angka bukan nol (sebelum angka pasti) termasuk angka penting, Angka nol di antara dua angka bukan nol termasuk angka penting, Angka nol di belakang koma desimal dan di belakang angka bukan nol termasuk angka penting"},{"huruf":"D","teks":"Semua angka bukan nol termasuk angka penting, Angka nol di antara dua angka bukan nol termasuk angka penting, Angka nol di belakang koma desimal dan di belakang angka bukan nol termasuk angka penting"}],"kunci":"D","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"mubc188vgawe6f","tipe":"pg","teks":"Hitunglah hasil pengukuran jangka sorong berikut (ketelitian 0,1 mm). Gunakan rumus: hasil = skala utama + (skala nonius × 0,1 mm). — Skala utama 45 mm, garis nonius berimpit ke-8 → hasil = ... mm","gambar":null,"opsi":[{"huruf":"A","teks":"45,8"},{"huruf":"B","teks":"12,5"},{"huruf":"C","teks":"30,2"},{"huruf":"D","teks":"14,5"},{"huruf":"E","teks":"13,2"}],"kunci":"A","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188vhfcl3g","tipe":"pg","teks":"Bagian jangka sorong yang digunakan untuk mengukur diameter DALAM suatu benda (misal cincin) adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"Baut pengunci"},{"huruf":"B","teks":"Tangkai ukur kedalaman"},{"huruf":"C","teks":"Rahang dalam (bawah)"},{"huruf":"D","teks":"Rahang luar (atas)"}],"kunci":"C","materi":"Pengukuran","submateri":"Jangka Sorong"},{"id":"mubc188utvy9up","tipe":"pg","teks":"Semua yang termasuk BESARAN POKOK. Manakah kombinasi jawaban yang tepat?","gambar":null,"opsi":[{"huruf":"A","teks":"Kecepatan, Luas"},{"huruf":"B","teks":"Massa, Waktu, Suhu"},{"huruf":"C","teks":"Panjang, Massa, Kecepatan, Waktu, Suhu"},{"huruf":"D","teks":"Panjang, Massa, Waktu, Suhu"}],"kunci":"D","materi":"Pengukuran","submateri":"Besaran Pokok"},{"id":"mubc188vq6krm7","tipe":"pg","teks":"Pada bagian mikrometer sekrup berikut dengan fungsinya. Fungsi Skala putar (thimble) adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"Memutar thimble dengan tekanan konsisten"},{"huruf":"B","teks":"Landasan diam tempat benda diletakkan"},{"huruf":"C","teks":"Bagian yang bergerak menjepit benda"},{"huruf":"D","teks":"Membantu membaca angka desimal hasil pengukuran"}],"kunci":"D","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188v0z4ycv","tipe":"pg","teks":"Lengkapi pernyataan berikut mengenai mikrometer sekrup. — Satuan ketelitian mikrometer sekrup adalah ... mm","gambar":null,"opsi":[{"huruf":"A","teks":"thimble"},{"huruf":"B","teks":"0,01"},{"huruf":"C","teks":"poros tetap"}],"kunci":"B","materi":"Pengukuran","submateri":"Mikrometer Sekrup"},{"id":"mubc188vn2fysk","tipe":"pg","teks":"Bentuk notasi ilmiah dari 45.000 adalah…","gambar":null,"opsi":[{"huruf":"A","teks":"45 × 10³"},{"huruf":"B","teks":"4,5 × 10³"},{"huruf":"C","teks":"4,5 × 10⁴"},{"huruf":"D","teks":"0,45 × 10⁵"}],"kunci":"C","materi":"Pengukuran","submateri":"Notasi Ilmiah"},{"id":"19f3f5d39yx42p","tipe":"pg","teks":"Hasil dari (3 × 10⁴) × (2 × 10³) dalam notasi ilmiah adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"6 × 10⁷"},{"huruf":"B","teks":"6 × 10¹²"},{"huruf":"C","teks":"5 × 10⁷"},{"huruf":"D","teks":"6 × 10⁶"},{"huruf":"E","teks":"5 × 10¹²"}],"kunci":"A","materi":"Pengukuran","submateri":"Notasi Ilmiah"},{"id":"19f40222860a1d1d2","tipe":"pg","teks":"Dimensi dari besaran tekanan (P = F/A) adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L]^-1[T]^-2"},{"huruf":"B","teks":"[M][L][T]^-2"},{"huruf":"C","teks":"[M][L]^2[T]^-2"},{"huruf":"D","teks":"[M][L]^-2[T]^-1"},{"huruf":"E","teks":"[M][L]^-1[T]^-1"}],"kunci":"A","materi":"Pengukuran","submateri":"Satuan"},{"id":"mubc188v16opzh","tipe":"pg","teks":"Luas 5000 cm² jika dinyatakan dalam m² adalah ....","gambar":null,"opsi":[{"huruf":"A","teks":"500 m²"},{"huruf":"B","teks":"5 m²"},{"huruf":"C","teks":"50 m²"},{"huruf":"D","teks":"0,5 m²"}],"kunci":"B","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"mubce5auagbe5h","tipe":"pg","teks":"Usaha dirumuskan sebagai W = F·s. Dimensi dari besaran usaha (dan juga energi) adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L][T]^-2"},{"huruf":"B","teks":"[M][L]^2[T]^-2"},{"huruf":"C","teks":"[M][L]^2[T]^-3"},{"huruf":"D","teks":"[M][L]^2[T]^-1"},{"huruf":"E","teks":"[M]^2[L][T]^-2"}],"kunci":"B","materi":"Pengukuran","submateri":"Dimensi"},{"id":"19f3f5d3xnw3bh","tipe":"pg","teks":"Besaran usaha (energi) merupakan besaran turunan yang tersusun dari besaran-besaran pokok ...","gambar":null,"opsi":[{"huruf":"A","teks":"massa, panjang, dan waktu"},{"huruf":"B","teks":"massa dan waktu saja"},{"huruf":"C","teks":"panjang dan waktu saja"},{"huruf":"D","teks":"massa dan panjang saja"},{"huruf":"E","teks":"panjang, waktu, dan arus listrik"}],"kunci":"A","materi":"Pengukuran","submateri":"Besaran Turunan"},{"id":"19f40222860x2tljb","tipe":"pg","teks":"Ketidakpastian (ketelitian) pada satu kali pengukuran tunggal umumnya dinyatakan sebesar...","gambar":null,"opsi":[{"huruf":"A","teks":"Seperempat skala terkecil alat ukur"},{"huruf":"B","teks":"Setengah skala terkecil alat ukur"},{"huruf":"C","teks":"Sama dengan skala terkecil alat ukur"},{"huruf":"D","teks":"Dua kali skala terkecil alat ukur"},{"huruf":"E","teks":"Tidak dapat ditentukan"}],"kunci":"B","materi":"Pengukuran","submateri":"Pengukuran"},{"id":"mubc188vbj24tz","tipe":"pg","teks":"2 jam sama dengan … sekon.","gambar":null,"opsi":[{"huruf":"A","teks":"3.600 sekon"},{"huruf":"B","teks":"86.400 sekon"},{"huruf":"C","teks":"120 sekon"},{"huruf":"D","teks":"7.200 sekon"}],"kunci":"D","materi":"Pengukuran","submateri":"Konversi Satuan"},{"id":"19f402228603wc6qp","tipe":"pg","teks":"Sebuah pelat logam diukur dengan jangka sorong: panjang = 5,55 cm dan lebar = 2,20 cm. Luas pelat yang dilaporkan dengan aturan angka penting yang benar adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"12 cm^2"},{"huruf":"B","teks":"12,2 cm^2"},{"huruf":"C","teks":"12,21 cm^2"},{"huruf":"D","teks":"12,210 cm^2"},{"huruf":"E","teks":"12,2100 cm^2"}],"kunci":"B","materi":"Pengukuran","submateri":"Angka Penting"},{"id":"19f40222860yyqfp4","tipe":"pg","teks":"Pada pengukuran diameter sebuah bola kecil menggunakan jangka sorong, diperoleh tiga kali pengulangan: 1,25 cm; 1,27 cm; dan 1,26 cm. Nilai rata-rata pengukuran dan alasan pengukuran berulang lebih disarankan dibandingkan pengukuran tunggal adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"1,25 cm; agar kesalahan sistematik alat hilang sepenuhnya"},{"huruf":"B","teks":"1,27 cm; agar hasil pengukuran sama persis dengan nilai sebenarnya"},{"huruf":"C","teks":"1,26 cm; karena pengukuran berulang meningkatkan ketelitian (skala terkecil) alat ukur"},{"huruf":"D","teks":"1,26 cm; karena dapat memperkecil pengaruh kesalahan acak sehingga hasil lebih mendekati nilai sebenarnya"},{"huruf":"E","teks":"3,78 cm; karena dapat memperkecil pengaruh kesalahan acak sehingga hasil lebih mendekati nilai sebenarnya"}],"kunci":"D","materi":"Pengukuran","submateri":"Pengukuran"},{"id":"mubce5auku2qfr","tipe":"pg","teks":"Gaya gravitasi antara dua benda dinyatakan dengan F = G·m₁·m₂/r². Dimensi dari tetapan gravitasi umum G adalah ...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L]^3[T]^-2"},{"huruf":"B","teks":"[M]^-1[L]^3[T]^-2"},{"huruf":"C","teks":"[M]^-1[L]^2[T]^-2"},{"huruf":"D","teks":"[M]^-2[L]^3[T]^-2"},{"huruf":"E","teks":"[M]^-1[L]^3[T]^-1"}],"kunci":"B","materi":"Pengukuran","submateri":"Dimensi"},{"id":"19f40222860bktm36","tipe":"pg","teks":"Dimensi konstanta gravitasi umum G pada persamaan gaya gravitasi Newton F = G·m₁·m₂/r² adalah...","gambar":null,"opsi":[{"huruf":"A","teks":"[M][L]³[T]⁻²"},{"huruf":"B","teks":"[M]⁻¹[L]²[T]⁻²"},{"huruf":"C","teks":"[M]⁻²[L]³[T]⁻²"},{"huruf":"D","teks":"[M]⁻¹[L]⁻³[T]²"},{"huruf":"E","teks":"[M]⁻¹[L]³[T]⁻²"}],"kunci":"E","materi":"Pengukuran","submateri":"Satuan"},{"id":"19f40222860hdxx95","tipe":"pg","teks":"Pada pengukuran diameter kawat dengan mikrometer sekrup, skala utama menunjukkan 4,5 mm dan skala putar (nonius) menunjukkan garis ke-27 yang segaris dengan garis mendatar (ketelitian skala putar 0,01 mm). Hasil pengukuran diameter kawat beserta ketidakpastiannya ditulis...","gambar":null,"opsi":[{"huruf":"A","teks":"d = (4,50 ± 0,005) mm"},{"huruf":"B","teks":"d = (4,527 ± 0,005) mm"},{"huruf":"C","teks":"d = (4,77 ± 0,01) mm"},{"huruf":"D","teks":"d = (4,770 ± 0,005) mm"},{"huruf":"E","teks":"d = (7,20 ± 0,005) mm"}],"kunci":"D","materi":"Pengukuran","submateri":"Mikrometer Sekrup"}];
+  var SECTION_BREAK_TETAP = -1;
+  var SECTION_BREAK = -1;
+  var remainingSeconds = DURATION_SECONDS;
+  var timerInterval = null;
+  var sudahTerkirim = false;
+  var sudahMulai = false;
+  var QUESTIONS = [];
+  var TOTAL_SOAL = 0;
+  var answers = [];
+  var raguSet = {};
+  var currentIndex = 0;
+  var jumlahPelanggaran = 0;
+  var logPelanggaran = [];
+  var waktuMulai = null;
+
+  function slugify(str) {
+    return String(str || 'evaluasi-fisika')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || 'evaluasi-fisika';
+  }
+  var STORAGE_KEY = 'bsf-ujian-' + slugify("uhpengukuran x11");
+
+  function parseMathJs(str) {
+    str = String(str || '');
+    var i = 0;
+    var n = str.length;
+    function readGroup() {
+      i++;
+      var depth = 1;
+      var start = i;
+      while (i < n && depth > 0) {
+        if (str[i] === '(') depth++;
+        else if (str[i] === ')') { depth--; if (depth === 0) break; }
+        i++;
+      }
+      var inner = str.slice(start, i);
+      i++;
+      return inner;
+    }
+    function readSimpleToken() {
+      var start = i;
+      if (i < n && (str[i] === '+' || str[i] === '-')) i++;
+      while (i < n && /[a-zA-Z0-9.]/.test(str[i])) i++;
+      if (i === start) i++;
+      return str.slice(start, i);
+    }
+    function splitTopLevelComma(s) {
+      var depth = 0, start = 0; var parts = [];
+      for (var k = 0; k < s.length; k++) {
+        if (s[k] === '(') depth++;
+        else if (s[k] === ')') depth--;
+        else if (s[k] === ',' && depth === 0) {
+          parts.push(s.slice(start, k));
+          start = k + 1;
+        }
+      }
+      parts.push(s.slice(start));
+      return parts;
+    }
+    var nodes = [];
+    var buffer = '';
+    function flush() { if (buffer) { nodes.push({ t: 'text', text: buffer }); buffer = ''; } }
+    while (i < n) {
+      if (str[i] === '^') {
+        flush();
+        i++;
+        var innerSup = str[i] === '(' ? readGroup() : readSimpleToken();
+        nodes.push({ t: 'sup', children: parseMathJs(innerSup) });
+        continue;
+      }
+      if (str[i] === '_') {
+        flush();
+        i++;
+        var innerSub = str[i] === '(' ? readGroup() : readSimpleToken();
+        nodes.push({ t: 'sub', children: parseMathJs(innerSub) });
+        continue;
+      }
+      if (str.slice(i, i + 5) === 'sqrt(') {
+        flush();
+        i += 4;
+        var innerSqrt = readGroup();
+        nodes.push({ t: 'sqrt', children: parseMathJs(innerSqrt) });
+        continue;
+      }
+      if (str.slice(i, i + 5) === 'frac(') {
+        flush();
+        i += 4;
+        var innerFrac = readGroup();
+        var parts = splitTopLevelComma(innerFrac);
+        nodes.push({ t: 'frac', num: parseMathJs(parts[0] || ''), den: parseMathJs(parts[1] || '') });
+        continue;
+      }
+      buffer += str[i];
+      i++;
+    }
+    flush();
+    return nodes;
+  }
+
+  function renderMathNodes(nodes, container) {
+    nodes.forEach(function (node) {
+      if (node.t === 'text') {
+        container.appendChild(document.createTextNode(node.text));
+      } else if (node.t === 'sup') {
+        var sup = document.createElement('sup');
+        sup.style.fontSize = '0.75em';
+        renderMathNodes(node.children, sup);
+        container.appendChild(sup);
+      } else if (node.t === 'sub') {
+        var sub = document.createElement('sub');
+        sub.style.fontSize = '0.75em';
+        renderMathNodes(node.children, sub);
+        container.appendChild(sub);
+      } else if (node.t === 'sqrt') {
+        var wrap = document.createElement('span');
+        wrap.style.display = 'inline-flex';
+        wrap.style.alignItems = 'flex-start';
+        var rad = document.createElement('span');
+        rad.style.fontSize = '1.1em';
+        rad.style.lineHeight = '1';
+        rad.textContent = '√';
+        var inner = document.createElement('span');
+        inner.style.borderTop = '1.5px solid currentColor';
+        inner.style.paddingLeft = '2px';
+        inner.style.paddingTop = '1px';
+        renderMathNodes(node.children, inner);
+        wrap.appendChild(rad);
+        wrap.appendChild(inner);
+        container.appendChild(wrap);
+      } else if (node.t === 'frac') {
+        var fwrap = document.createElement('span');
+        fwrap.style.display = 'inline-flex';
+        fwrap.style.flexDirection = 'column';
+        fwrap.style.alignItems = 'center';
+        fwrap.style.verticalAlign = 'middle';
+        fwrap.style.margin = '0 2px';
+        fwrap.style.fontSize = '0.92em';
+        fwrap.style.lineHeight = '1.15';
+        var numEl = document.createElement('span');
+        numEl.style.padding = '0 3px';
+        renderMathNodes(node.num, numEl);
+        var line = document.createElement('span');
+        line.style.borderTop = '1.5px solid currentColor';
+        line.style.width = '100%';
+        var denEl = document.createElement('span');
+        denEl.style.padding = '0 3px';
+        renderMathNodes(node.den, denEl);
+        fwrap.appendChild(numEl);
+        fwrap.appendChild(line);
+        fwrap.appendChild(denEl);
+        container.appendChild(fwrap);
+      }
+    });
+  }
+
+  function renderMathInto(el, str) {
+    el.innerHTML = '';
+    renderMathNodes(parseMathJs(str), el);
+  }
+
+  function simpanProgress() {
+    try {
+      var nama = document.getElementById('nama') ? document.getElementById('nama').value.trim() : '';
+      var kelas = document.getElementById('kelas') ? document.getElementById('kelas').value.trim() : '';
+      var data = {
+        nama: nama,
+        kelas: kelas,
+        waktuMulai: waktuMulai,
+        questions: QUESTIONS,
+        answers: answers,
+        raguSet: raguSet,
+        currentIndex: currentIndex,
+        jumlahPelanggaran: jumlahPelanggaran,
+        logPelanggaran: logPelanggaran,
+        sudahMulai: sudahMulai,
+        sudahTerkirim: sudahTerkirim,
+        savedAt: Date.now()
+      };
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) { /* localStorage tidak tersedia, abaikan */ }
+  }
+
+  function muatProgress() {
+    try {
+      var raw = window.localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      if (!data || !data.sudahMulai || data.sudahTerkirim) return null;
+      if (!Array.isArray(data.questions) || data.questions.length === 0) return null;
+      return data;
+    } catch (e) { return null; }
+  }
+
+  function hapusProgress() {
+    try { window.localStorage.removeItem(STORAGE_KEY); } catch (e) { /* abaikan */ }
+  }
+
+  function tampilkanLayarUjian() {
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('cbtArea').style.display = 'flex';
+    if (ANTI_CURANG) mintaFullscreen();
+    buildNavGrid();
+    renderQuestion(currentIndex);
+    updatePelanggaranBox();
+    startTimer();
+  }
+
+  function cekProgressTersimpan() {
+    var data = muatProgress();
+    var box = document.getElementById('resumeBox');
+    if (!data) { box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    var labelNama = data.nama ? (data.nama + (data.kelas ? ' (' + data.kelas + ')' : '')) : 'sesi sebelumnya';
+    box.innerHTML =
+      '<b>Ditemukan progres ujian yang belum selesai</b><br/>' +
+      'Atas nama <b>' + labelNama + '</b>, terakhir tersimpan ' + new Date(data.savedAt).toLocaleTimeString() + '.' +
+      ' Jika ini bukan Anda, pilih "Mulai Ujian Baru".' +
+      '<div class="resume-btns">' +
+        '<button class="resume-btn-lanjut" onclick="lanjutkanUjian()">Lanjutkan Ujian Ini</button>' +
+        '<button class="resume-btn-baru" onclick="mulaiUjianBaru()">Mulai Ujian Baru</button>' +
+      '</div>';
+    if (data.nama && document.getElementById('nama')) document.getElementById('nama').value = data.nama;
+    if (data.kelas && document.getElementById('kelas')) document.getElementById('kelas').value = data.kelas;
+  }
+
+  function lanjutkanUjian() {
+    var data = muatProgress();
+    if (!data) return;
+    QUESTIONS = data.questions;
+    TOTAL_SOAL = QUESTIONS.length;
+    answers = data.answers || new Array(TOTAL_SOAL).fill("");
+    raguSet = data.raguSet || {};
+    currentIndex = Math.min(data.currentIndex || 0, TOTAL_SOAL - 1);
+    jumlahPelanggaran = data.jumlahPelanggaran || 0;
+    logPelanggaran = data.logPelanggaran || [];
+    waktuMulai = data.waktuMulai;
+    sudahMulai = true;
+    if (DURATION_SECONDS > 0 && waktuMulai) {
+      var terlewat = Math.floor((Date.now() - waktuMulai) / 1000);
+      remainingSeconds = Math.max(0, DURATION_SECONDS - terlewat);
+    } else {
+      remainingSeconds = DURATION_SECONDS;
+    }
+    document.getElementById('resumeBox').style.display = 'none';
+    tampilkanLayarUjian();
+    if (remainingSeconds <= 0 && DURATION_SECONDS > 0) {
+      kuncSemuaInput();
+      kirimJawaban(true);
+    }
+  }
+
+  function mulaiUjianBaru() {
+    hapusProgress();
+    document.getElementById('resumeBox').style.display = 'none';
+    mulaiUjian();
+  }
+
+  function kocokArray(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function acakOpsiSoal(soal) {
+    if (soal.tipe !== 'pg' || !soal.opsi || soal.opsi.length === 0) return soal;
+    var opsiAcak = kocokArray(soal.opsi);
+    var hurufBaru = ['A', 'B', 'C', 'D', 'E'];
+    var indeksKunciBaru = -1;
+    for (var i = 0; i < opsiAcak.length; i++) {
+      if (opsiAcak[i].huruf === soal.kunci) { indeksKunciBaru = i; break; }
+    }
+    var opsiBaru = opsiAcak.map(function (o, i) { return { huruf: hurufBaru[i], teks: o.teks }; });
+    return {
+      id: soal.id,
+      tipe: soal.tipe,
+      teks: soal.teks,
+      gambar: soal.gambar || null,
+      materi: soal.materi || '',
+      submateri: soal.submateri || '',
+      opsi: opsiBaru,
+      kunci: indeksKunciBaru >= 0 ? hurufBaru[indeksKunciBaru] : soal.kunci
+    };
+  }
+
+  function distribusiMerataJS(kandidat, n, submateriKeys) {
+    if (n <= 0 || submateriKeys.length === 0) return [];
+    var grouped = {};
+    submateriKeys.forEach(function (sm) {
+      grouped[sm] = kocokArray(kandidat.filter(function (c) { return c.submateri === sm; }));
+    });
+    var k = submateriKeys.length;
+    var base = Math.floor(n / k);
+    var remainder = n % k;
+    var urutan = kocokArray(submateriKeys.slice());
+    var jatah = {};
+    urutan.forEach(function (sm, idx) {
+      jatah[sm] = base + (idx < remainder ? 1 : 0);
+    });
+    var hasil = [];
+    var kekurangan = 0;
+    var sisaPool = [];
+    urutan.forEach(function (sm) {
+      var avail = grouped[sm] || [];
+      var want = jatah[sm];
+      var ambil = avail.slice(0, want);
+      hasil = hasil.concat(ambil);
+      if (ambil.length < want) kekurangan += (want - ambil.length);
+      sisaPool = sisaPool.concat(avail.slice(want));
+    });
+    if (kekurangan > 0 && sisaPool.length > 0) {
+      hasil = hasil.concat(kocokArray(sisaPool).slice(0, kekurangan));
+    }
+    return hasil;
+  }
+
+  function pilihSoalJenis(jenisKey) {
+    var terpilih = [];
+    ['mudah', 'sedang', 'sukar'].forEach(function (tk) {
+      var n = (TARGET[jenisKey] && TARGET[jenisKey][tk]) || 0;
+      var kandidatTingkat = (POOL[jenisKey] && POOL[jenisKey][tk]) || [];
+      if (SUBMATERI_AKTIF.length > 0) {
+        terpilih = terpilih.concat(distribusiMerataJS(kandidatTingkat, n, SUBMATERI_AKTIF));
+      } else {
+        terpilih = terpilih.concat(kocokArray(kandidatTingkat).slice(0, n));
+      }
+    });
+    return terpilih;
+  }
+
+  function susunSoalUntukSiswa() {
+    if (MODE_SOAL === 'sama') {
+      // Soal, urutan soal, dan urutan opsi A-E dikunci sama persis untuk semua
+      // siswa (tidak ada pengacakan sama sekali) — sudah disiapkan saat guru
+      // mengunduh file ini.
+      SECTION_BREAK = SECTION_BREAK_TETAP;
+      return SOAL_TETAP;
+    }
+    var pgArr = pilihSoalJenis('pg');
+    var esaiArr = pilihSoalJenis('esai');
+    var terpilih;
+    if (KELOMPOKKAN_JENIS) {
+      pgArr = kocokArray(pgArr);
+      esaiArr = kocokArray(esaiArr);
+      terpilih = pgArr.concat(esaiArr);
+      SECTION_BREAK = (pgArr.length > 0 && esaiArr.length > 0) ? pgArr.length : -1;
+    } else {
+      terpilih = kocokArray(pgArr.concat(esaiArr));
+      SECTION_BREAK = -1;
+    }
+    return terpilih.map(acakOpsiSoal);
+  }
+
+  function buildNavGrid() {
+    var grid = document.getElementById('navGrid');
+    grid.innerHTML = "";
+    for (var i = 0; i < TOTAL_SOAL; i++) {
+      if (i === SECTION_BREAK) {
+        var divider = document.createElement('div');
+        divider.className = 'nav-divider';
+        divider.textContent = 'Bagian B: Esai';
+        grid.appendChild(divider);
+      }
+      var btn = document.createElement('button');
+      btn.className = 'nav-btn';
+      btn.id = 'nav-' + i;
+      btn.textContent = (i + 1);
+      btn.onclick = (function (idx) { return function () { goTo(idx); }; })(i);
+      grid.appendChild(btn);
+    }
+  }
+
+  function refreshNavButton(i) {
+    var btn = document.getElementById('nav-' + i);
+    if (!btn) return;
+    btn.className = 'nav-btn';
+    if (raguSet[i]) btn.className += ' ragu';
+    else if (answers[i] && answers[i].trim() !== '') btn.className += ' answered';
+    if (i === currentIndex) btn.className += ' current';
+  }
+
+  function refreshAllNav() {
+    for (var i = 0; i < TOTAL_SOAL; i++) refreshNavButton(i);
+    refreshRingkasan();
+  }
+
+  function refreshRingkasan() {
+    var terjawab = 0, ragu = 0;
+    for (var j = 0; j < TOTAL_SOAL; j++) {
+      if (answers[j] && String(answers[j]).trim() !== '') terjawab++;
+      if (raguSet[j]) ragu++;
+    }
+    document.getElementById('summaryText').innerHTML =
+      'Terjawab: ' + terjawab + ' / ' + TOTAL_SOAL + '<br/>Ragu-ragu: ' + ragu + '<br/>Belum dijawab: ' + (TOTAL_SOAL - terjawab);
+  }
+
+  function buildJawabanArea(idx) {
+    var q = QUESTIONS[idx];
+    var area = document.getElementById('jawabanArea');
+    area.innerHTML = '';
+    if (q.tipe === 'pg' && q.opsi && q.opsi.length > 0) {
+      var list = document.createElement('div');
+      list.className = 'opsi-list';
+      q.opsi.forEach(function (o) {
+        var item = document.createElement('label');
+        item.className = 'opsi-item' + (answers[idx] === o.huruf ? ' dipilih' : '');
+        var radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'opsi-' + idx;
+        radio.value = o.huruf;
+        radio.checked = answers[idx] === o.huruf;
+        radio.addEventListener('change', function (huruf) {
+          return function () {
+            answers[idx] = huruf;
+            buildJawabanArea(idx);
+            refreshNavButton(idx);
+            refreshRingkasan();
+            simpanProgress();
+          };
+        }(o.huruf));
+        var huruf = document.createElement('span');
+        huruf.className = 'opsi-huruf';
+        huruf.textContent = o.huruf + '.';
+        var teksSpan = document.createElement('span');
+        renderMathInto(teksSpan, o.teks);
+        item.appendChild(radio);
+        item.appendChild(huruf);
+        item.appendChild(teksSpan);
+        list.appendChild(item);
+      });
+      area.appendChild(list);
+    } else {
+      var textarea = document.createElement('textarea');
+      textarea.className = 'jawaban-input';
+      textarea.id = 'jawabanInput';
+      textarea.rows = 4;
+      textarea.placeholder = 'Tulis jawaban Anda di sini...';
+      textarea.value = answers[idx] || '';
+      textarea.addEventListener('input', function () {
+        answers[idx] = this.value;
+        refreshNavButton(idx);
+        refreshRingkasan();
+        clearTimeout(window.__bsfSaveTimeout);
+        window.__bsfSaveTimeout = setTimeout(simpanProgress, 400);
+      });
+      area.appendChild(textarea);
+    }
+  }
+
+  function renderQuestion(idx) {
+    document.getElementById('progressText').textContent = 'Soal ' + (idx + 1) + ' dari ' + TOTAL_SOAL;
+    var labelEl = document.getElementById('sectionLabel');
+    if (SECTION_BREAK >= 0) {
+      labelEl.style.display = 'inline-block';
+      labelEl.textContent = idx < SECTION_BREAK ? 'Bagian A: Pilihan Ganda' : 'Bagian B: Esai';
+    } else {
+      labelEl.style.display = 'none';
+    }
+    renderMathInto(document.getElementById('soalText'), QUESTIONS[idx].teks);
+    var imgEl = document.getElementById('soalImage');
+    if (QUESTIONS[idx].gambar) {
+      imgEl.src = QUESTIONS[idx].gambar;
+      imgEl.style.display = 'block';
+    } else {
+      imgEl.src = '';
+      imgEl.style.display = 'none';
+    }
+    buildJawabanArea(idx);
+    document.getElementById('prevBtn').disabled = idx === 0;
+    document.getElementById('nextBtn').disabled = idx === TOTAL_SOAL - 1;
+    var raguBtn = document.getElementById('raguBtn');
+    raguBtn.className = 'btn btn-ragu' + (raguSet[idx] ? ' active' : '');
+    refreshAllNav();
+  }
+
+  function saveCurrentAnswer() {
+    var ta = document.getElementById('jawabanInput');
+    if (ta) answers[currentIndex] = ta.value;
+  }
+
+  function hitungSkor() {
+    var benar = 0;
+    var totalPg = 0;
+    for (var i = 0; i < TOTAL_SOAL; i++) {
+      var q = QUESTIONS[i];
+      if (q.tipe === 'pg' && q.kunci) {
+        totalPg++;
+        if (answers[i] === q.kunci) benar++;
+      }
+    }
+    var skor = totalPg > 0 ? Math.round((benar / totalPg) * 100) : null;
+    return { benar: benar, totalPg: totalPg, skor: skor };
+  }
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= TOTAL_SOAL) return;
+    saveCurrentAnswer();
+    currentIndex = idx;
+    renderQuestion(currentIndex);
+    simpanProgress();
+  }
+
+  function toggleRagu() {
+    if (raguSet[currentIndex]) delete raguSet[currentIndex];
+    else raguSet[currentIndex] = true;
+    renderQuestion(currentIndex);
+    simpanProgress();
+  }
+
+  function formatWaktu(totalDetik) {
+    var m = Math.floor(totalDetik / 60);
+    var s = totalDetik % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function updateTimerDisplay() {
+    var el = document.getElementById('timerValue');
+    el.textContent = formatWaktu(Math.max(0, remainingSeconds));
+    el.className = 'timer-value' + (remainingSeconds <= 300 ? ' warning' : '');
+  }
+
+  function kuncSemuaInput() {
+    var kontrol = document.getElementById('jawabanArea').querySelectorAll('input, textarea');
+    for (var k = 0; k < kontrol.length; k++) kontrol[k].disabled = true;
+    document.getElementById('prevBtn').disabled = true;
+    document.getElementById('nextBtn').disabled = true;
+    document.getElementById('raguBtn').disabled = true;
+    document.getElementById('submitBtn').disabled = true;
+    var navBtns = document.querySelectorAll('.nav-btn');
+    for (var i = 0; i < navBtns.length; i++) navBtns[i].disabled = true;
+  }
+
+  function startTimer() {
+    var bar = document.getElementById('timerBar');
+    if (DURATION_SECONDS <= 0) {
+      bar.style.display = 'none';
+      return;
+    }
+    bar.style.display = 'flex';
+    updateTimerDisplay();
+    timerInterval = setInterval(function () {
+      remainingSeconds--;
+      updateTimerDisplay();
+      if (remainingSeconds <= 0) {
+        clearInterval(timerInterval);
+        kuncSemuaInput();
+        if (!sudahTerkirim) {
+          alert('Waktu pengerjaan telah habis. Jawaban akan otomatis dikirim.');
+          kirimJawaban(true);
+        }
+      }
+    }, 1000);
+  }
+
+  function updatePelanggaranBox() {
+    var box = document.getElementById('pelanggaranBox');
+    if (!ANTI_CURANG) { box.className = 'pelanggaran-box'; return; }
+    box.className = 'pelanggaran-box tampil';
+    box.textContent = 'Pelanggaran terdeteksi: ' + jumlahPelanggaran + (BATAS_PELANGGARAN > 0 ? ' / ' + BATAS_PELANGGARAN : '');
+  }
+
+  function tutupHalamanOtomatis() {
+    // Percobaan menutup tab/halaman secara otomatis. Sebagian besar browser
+    // modern HANYA mengizinkan window.close() untuk tab yang dibuka lewat
+    // script, sehingga pada banyak kasus (file dibuka langsung oleh siswa)
+    // percobaan ini akan gagal secara diam-diam. Karena itu disediakan juga
+    // pesan cadangan yang meminta siswa menutup halaman secara manual.
+    window.setTimeout(function () {
+      try { window.close(); } catch (e) { /* diabaikan */ }
+      window.setTimeout(function () {
+        if (!document.hidden) {
+          var el = document.getElementById('successMsg');
+          if (el && !document.getElementById('tutupManualNote')) {
+            var note = document.createElement('div');
+            note.id = 'tutupManualNote';
+            note.style.marginTop = '10px';
+            note.style.fontWeight = '400';
+            note.style.fontSize = '13px';
+            note.textContent = 'Browser Anda tidak mengizinkan halaman ini ditutup secara otomatis. Silakan tutup tab/aplikasi ini sekarang.';
+            el.appendChild(note);
+          }
+        }
+      }, 500);
+    }, 1200);
+  }
+
+  function catatPelanggaran(alasan) {
+    if (!ANTI_CURANG || !sudahMulai || sudahTerkirim) return;
+    jumlahPelanggaran++;
+    logPelanggaran.push(alasan + ' (' + new Date().toLocaleTimeString() + ')');
+    updatePelanggaranBox();
+    simpanProgress();
+    if (BATAS_PELANGGARAN > 0 && jumlahPelanggaran >= BATAS_PELANGGARAN) {
+      kuncSemuaInput();
+      alert('Anda telah melewati batas pelanggaran (' + jumlahPelanggaran + 'x). Jawaban akan otomatis dikirim dan halaman ini akan ditutup.');
+      kirimJawaban(true, true);
+    } else {
+      var sisaKesempatan = BATAS_PELANGGARAN > 0 ? BATAS_PELANGGARAN - jumlahPelanggaran : null;
+      var pesanSisa = sisaKesempatan === 1
+        ? ' Ini adalah kesempatan terakhir Anda sebelum jawaban otomatis dikirim dan halaman ditutup.'
+        : (sisaKesempatan !== null ? ' Sisa kesempatan sebelum jawaban otomatis dikirim: ' + sisaKesempatan + 'x.' : '');
+      window.setTimeout(function () {
+        alert('Peringatan: "' + alasan + '" tercatat sebagai pelanggaran (' + jumlahPelanggaran + (BATAS_PELANGGARAN > 0 ? '/' + BATAS_PELANGGARAN : '') + ').' + pesanSisa + ' Tetap berada di halaman ujian dalam mode layar penuh.');
+      }, 200);
+    }
+  }
+
+  function pasangPemantauAntiCurang() {
+    if (!ANTI_CURANG) return;
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) catatPelanggaran('Berpindah tab atau aplikasi lain');
+    });
+    document.addEventListener('fullscreenchange', function () {
+      if (!document.fullscreenElement && sudahMulai && !sudahTerkirim) {
+        catatPelanggaran('Keluar dari mode layar penuh');
+      }
+    });
+    document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    document.addEventListener('copy', function (e) { e.preventDefault(); });
+    document.addEventListener('keydown', function (e) {
+      var k = e.key;
+      if (k === 'F12' || (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'J' || k === 'C')) || (e.ctrlKey && k === 'u')) {
+        e.preventDefault();
+      }
+    });
+  }
+
+  function mintaFullscreen() {
+    var el = document.documentElement;
+    var req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if (req) {
+      try { req.call(el); } catch (e) { /* diabaikan jika ditolak browser */ }
+    }
+  }
+
+  function mulaiUjian() {
+    var nama = document.getElementById('nama').value.trim();
+    var kelas = document.getElementById('kelas').value.trim();
+    var err = document.getElementById('startErr');
+    if (!nama || !kelas) {
+      err.style.display = 'block';
+      return;
+    }
+    err.style.display = 'none';
+    sudahMulai = true;
+    QUESTIONS = susunSoalUntukSiswa();
+    TOTAL_SOAL = QUESTIONS.length;
+    answers = new Array(TOTAL_SOAL).fill("");
+    currentIndex = 0;
+    waktuMulai = Date.now();
+    tampilkanLayarUjian();
+    simpanProgress();
+  }
+
+  async function kirimJawaban(auto, tutupOtomatis) {
+    saveCurrentAnswer();
+    var nama = document.getElementById('nama').value.trim();
+    var kelas = document.getElementById('kelas').value.trim();
+
+    if (!auto) {
+      var belumDijawab = 0;
+      for (var i = 0; i < TOTAL_SOAL; i++) if (!answers[i] || String(answers[i]).trim() === '') belumDijawab++;
+      if (belumDijawab > 0) {
+        var lanjut = confirm('Masih ada ' + belumDijawab + ' soal belum dijawab. Tetap kirim jawaban?');
+        if (!lanjut) return;
+      }
+    }
+
+    var koreksi = hitungSkor();
+
+    if (!APPS_SCRIPT_URL) {
+      if (!auto) alert('Formulir ini belum terhubung ke spreadsheet. Hubungi guru Anda.');
+      if (tutupOtomatis) {
+        kuncSemuaInput();
+        sudahTerkirim = true;
+        hapusProgress();
+        if (timerInterval) clearInterval(timerInterval);
+        alert('Ujian dihentikan karena pelanggaran melewati batas. Formulir ini belum terhubung ke spreadsheet sehingga jawaban tidak dapat dikirim otomatis. Hubungi guru Anda, lalu tutup halaman ini.');
+        tutupHalamanOtomatis();
+      }
+      return;
+    }
+
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Mengirim...';
+
+    var raguList = [];
+    for (var k = 0; k < TOTAL_SOAL; k++) if (raguSet[k]) raguList.push(k + 1);
+
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          nama: nama,
+          kelas: kelas,
+          waktu: new Date().toISOString(),
+          jawaban: answers,
+          skorPg: koreksi.skor,
+          benarPg: koreksi.benar,
+          totalPg: koreksi.totalPg,
+          raguRagu: raguList,
+          jumlahPelanggaran: jumlahPelanggaran,
+          logPelanggaran: logPelanggaran,
+          soalId: QUESTIONS.map(function (q) { return q.id; }),
+          soalTeks: QUESTIONS.map(function (q) { return q.teks; }),
+          soalMateri: QUESTIONS.map(function (q) { return q.materi || ''; }),
+          soalSubmateri: QUESTIONS.map(function (q) { return q.submateri || ''; }),
+          kunciBaris: QUESTIONS.map(function (q) { return q.tipe === 'pg' ? (q.kunci || '') : 'ESAI'; })
+        })
+      });
+      sudahTerkirim = true;
+      hapusProgress();
+      if (timerInterval) clearInterval(timerInterval);
+      document.getElementById('startScreen').style.display = 'none';
+      document.getElementById('cbtArea').style.display = 'none';
+      document.getElementById('timerBar').style.display = 'none';
+      if (koreksi.skor !== null) {
+        var skorBox = document.getElementById('skorBox');
+        skorBox.style.display = 'block';
+        if (TAMPILKAN_SKOR) {
+          skorBox.textContent = 'Skor pilihan ganda: ' + koreksi.skor + ' (benar ' + koreksi.benar + ' dari ' + koreksi.totalPg + ' soal pilihan ganda). Soal esai akan dinilai oleh guru Anda.';
+        } else {
+          skorBox.textContent = 'Jawaban pilihan ganda dan esai Anda telah tercatat. Skor akan diumumkan oleh guru Anda.';
+        }
+      }
+      document.getElementById('successMsg').style.display = 'block';
+      if (tutupOtomatis) {
+        var teksSukses = document.getElementById('successMsgText');
+        if (teksSukses) {
+          teksSukses.textContent = 'Ujian dihentikan otomatis karena jumlah pelanggaran (keluar aplikasi/berpindah tab) telah melewati batas yang diizinkan. Jawaban Anda telah berhasil dikirim.';
+        }
+      }
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(function () {});
+      }
+      if (tutupOtomatis) {
+        tutupHalamanOtomatis();
+      }
+    } catch (err) {
+      if (!auto) alert('Gagal mengirim jawaban. Periksa koneksi internet Anda lalu coba lagi.');
+      btn.disabled = false;
+      btn.textContent = 'Selesai & Kirim Jawaban';
+    }
+  }
+
+  pasangPemantauAntiCurang();
+  cekProgressTersimpan();
+</script>
+</body>
+</html>
